@@ -6,7 +6,7 @@ namespace GitRocketFilterBranch
     /// <summary>
     /// Represents a git commit for scripting, with flattened properties with lower case name.
     /// </summary>
-    public struct SimpleCommit
+    public class SimpleCommit
     {
         private readonly Commit commit;
 
@@ -27,18 +27,18 @@ namespace GitRocketFilterBranch
         /// </summary>
         /// <param name="commit">The commit.</param>
         /// <exception cref="System.ArgumentNullException">commit</exception>
-        internal SimpleCommit(Commit commit) : this()
+        internal SimpleCommit(Commit commit)
         {
             if (commit == null) throw new ArgumentNullException("commit");
             this.commit = commit;
+            Reset();
         }
 
         /// <summary>
         /// Gets the identifier.
         /// </summary>
         /// <value>The identifier.</value>
-        // ReSharper disable once InconsistentNaming
-        public ObjectId id
+        public ObjectId Id
         {
             get { return commit.Id; }
         }
@@ -48,7 +48,7 @@ namespace GitRocketFilterBranch
         /// </summary>
         /// <value>The author name.</value>
         // ReSharper disable once InconsistentNaming
-        public string name
+        public string Name
         {
             get { return nameValue; }
             set
@@ -66,7 +66,7 @@ namespace GitRocketFilterBranch
         /// </summary>
         /// <value>The email.</value>
         // ReSharper disable once InconsistentNaming
-        public string email
+        public string Email
         {
             get { return emailValue; }
             set
@@ -83,8 +83,7 @@ namespace GitRocketFilterBranch
         /// Gets or sets the date.
         /// </summary>
         /// <value>The date.</value>
-        // ReSharper disable once InconsistentNaming
-        public DateTimeOffset date
+        public DateTimeOffset Date
         {
             get { return dateValue; }
             set
@@ -98,11 +97,10 @@ namespace GitRocketFilterBranch
         }
 
         /// <summary>
-        /// Gets or sets the author name.
+        /// Gets or sets the committer name.
         /// </summary>
         /// <value>The author name.</value>
-        // ReSharper disable once InconsistentNaming
-        public string nameCommitter
+        public string NameCommitter
         {
             get { return nameCommitterValue; }
             set
@@ -116,11 +114,10 @@ namespace GitRocketFilterBranch
         }
 
         /// <summary>
-        /// Gets or sets the email.
+        /// Gets or sets the committer email.
         /// </summary>
         /// <value>The email.</value>
-        // ReSharper disable once InconsistentNaming
-        public string emailCommiter
+        public string EmailCommitter
         {
             get { return emailCommitterValue; }
             set
@@ -134,11 +131,10 @@ namespace GitRocketFilterBranch
         }
 
         /// <summary>
-        /// Gets or sets the date.
+        /// Gets or sets the committer date.
         /// </summary>
         /// <value>The date.</value>
-        // ReSharper disable once InconsistentNaming
-        public DateTimeOffset dateCommitter
+        public DateTimeOffset DateCommitter
         {
             get { return dateCommitterValue; }
             set
@@ -155,8 +151,7 @@ namespace GitRocketFilterBranch
         /// Gets or sets the commit message.
         /// </summary>
         /// <value>The message.</value>
-        // ReSharper disable once InconsistentNaming
-        public string message
+        public string Message
         {
             get { return messageValue; }
             set
@@ -173,8 +168,7 @@ namespace GitRocketFilterBranch
         /// Gets or sets the commit short message.
         /// </summary>
         /// <value>The commit short message.</value>
-        // ReSharper disable once InconsistentNaming
-        public string messageShort
+        public string MessageShort
         {
             get { return messageShortValue; }
             set
@@ -191,7 +185,7 @@ namespace GitRocketFilterBranch
         /// Resets this values to the original commit.
         /// </summary>
         // ReSharper disable once InconsistentNaming
-        public void reset()
+        public void Reset()
         {
             dateValue = commit.Author.When;
             nameValue = commit.Author.Name;
@@ -207,7 +201,7 @@ namespace GitRocketFilterBranch
 
         public override string ToString()
         {
-            return string.Format("id: {0}, name: {1}, email: {2}, date: {3}, messageShort: {4}", id, name, email, date, messageShort);
+            return string.Format("id: {0}, name: {1}, email: {2}, date: {3}, messageShort: {4}", Id, Name, Email, Date, MessageShort);
         }
     }
 }
