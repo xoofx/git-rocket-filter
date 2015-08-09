@@ -63,8 +63,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="RocketFilterBranch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimpleBlob.cs" />
     <Compile Include="RocketException.cs" />
+    <Compile Include="SimpleEntry.cs" />
     <Compile Include="SimpleCommit.cs" />
     <Compile Include="TreeEntryWrapper.cs" />
   </ItemGroup>

@@ -5,7 +5,7 @@ using LibGit2Sharp;
 namespace GitRocketFilterBranch
 {
     /// <summary>
-    /// Represents a git blob for link.
+    /// Represents a git blob or link in a tree.
     /// </summary>
     public struct SimpleEntry
     {

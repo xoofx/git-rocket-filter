@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SharpGitFilterBranch")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("The git rocket filter branch")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SharpGitFilterBranch")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCopyright("Copyright (c) 2015 - Alexandre Mutel")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
