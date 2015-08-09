@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LibGit2Sharp">
-      <HintPath>..\packages\LibGit2Sharp.0.22.0-pre20150716071016\lib\net40\LibGit2Sharp.dll</HintPath>
+      <HintPath>..\external\libgit2sharp\LibGit2Sharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.1.0.0\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
