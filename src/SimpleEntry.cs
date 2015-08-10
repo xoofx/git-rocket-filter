@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using LibGit2Sharp;
 
-namespace GitRocketFilterBranch
+namespace GitRocketFilter
 {
     /// <summary>
     /// Represents a git blob or link in a tree.
@@ -143,5 +143,11 @@ namespace GitRocketFilterBranch
                 return null;
             }
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="SimpleEntry"/> should be discarded. Default is <c>false</c>.
+        /// </summary>
+        /// <value><c>true</c> if this commit should be discarded; otherwise, <c>false</c>.</value>
+        public bool Discard { get; set; }
     }
 }
