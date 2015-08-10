@@ -9,8 +9,8 @@
     <ProjectGuid>{16AD42F7-1C6D-4E3B-BA7A-3C81EFC2CC2A}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>GitRocketFilterBranch</RootNamespace>
-    <AssemblyName>git-rocket-filter-branch</AssemblyName>
+    <RootNamespace>GitRocketFilter</RootNamespace>
+    <AssemblyName>git-rocket-filter</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>413c35cc</NuGetPackageImportStamp>
@@ -61,7 +61,7 @@
   <ItemGroup>
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="RocketFilterBranch.cs" />
+    <Compile Include="RocketFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RocketException.cs" />
     <Compile Include="SimpleEntry.cs" />

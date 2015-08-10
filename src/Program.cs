@@ -17,7 +17,7 @@ namespace GitRocketFilterBranch
         {
             var clock = Stopwatch.StartNew();
 
-            var rocket = new RocketFilterBranch();
+            var rocket = new RocketFilter();
 
             var exeName = Path.GetFileNameWithoutExtension(typeof(Program).Assembly.Location);
             bool showHelp = false;
@@ -38,7 +38,7 @@ namespace GitRocketFilterBranch
                 _,
                 string.Format("Usage: {0} --branch <new_branch_name> [options]+ [revspec]", exeName),
                 _,
-                "If [revspec] is specified, this command will run only on the range of commit specified, otherwise, the whole range of commit from the current HEAD is selected",
+                "A single [revspec] is currently supported (either HEAD, commit-id, or a from..to). Default is HEAD ",
                 _,
                 "## Options",
                 _,
@@ -183,7 +183,7 @@ namespace GitRocketFilterBranch
             //}
 
             //var rocket =
-            //    new RocketFilterBranch(options.RepositoryPath ??
+            //    new RocketFilter(options.RepositoryPath ??
             //                            Environment.CurrentDirectory);
 
             //if (!options.KeepPatterns.Any() && !options.DeletePatterns.Any() && !options.KeepPatternsFiles.Any() &&
@@ -210,7 +210,7 @@ namespace GitRocketFilterBranch
 
             return 0;
 
-//            var program = new RocketFilterBranch(args[0]);
+//            var program = new RocketFilter(args[0]);
 
 //            var clock = Stopwatch.StartNew();
 //            //program.WhiteListPathPatterns = @"/** => entry.IsBlob && !entry.IsBinary && entry.DataAsText.Contains(""contact"")";

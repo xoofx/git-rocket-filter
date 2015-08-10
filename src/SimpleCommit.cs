@@ -9,7 +9,7 @@ namespace GitRocketFilterBranch
     /// </summary>
     public sealed class SimpleCommit
     {
-        private readonly RocketFilterBranch rocket;
+        private readonly RocketFilter rocket;
         private readonly Commit commit;
 
         private string authorNameValue;
@@ -34,7 +34,7 @@ namespace GitRocketFilterBranch
         /// <param name="rocket">The rocket.</param>
         /// <param name="commit">The commit.</param>
         /// <exception cref="System.ArgumentNullException">commit</exception>
-        internal SimpleCommit(RocketFilterBranch rocket, Commit commit)
+        internal SimpleCommit(RocketFilter rocket, Commit commit)
         {
             if (commit == null) throw new ArgumentNullException("commit");
             this.rocket = rocket;

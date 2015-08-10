@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 using Microsoft.CodeAnalysis;
@@ -12,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace GitRocketFilterBranch
 {
-    public class RocketFilterBranch
+    public class RocketFilter
     {
         private const string MethodCommitFilterName = "__CommitFilterMethod";
 
@@ -41,7 +42,7 @@ namespace GitRocketFilterBranch
         private RevSpec revisionSpec;
         private string branchRef;
 
-        public RocketFilterBranch()
+        public RocketFilter()
         {
             remap = new Dictionary<ObjectId, Commit>();
             tempRocketPath = Path.Combine(Path.GetTempPath(), ".gitRocketFilterBranch");
@@ -153,15 +154,27 @@ namespace GitRocketFilterBranch
 
         private void ProcessCommits()
         {
-            // Gets all commits in topological reverse order
-            var commits =
-                repo.Commits.QueryBy(new CommitFilter()
-                {
-                    FirstParentOnly = false,
-                    SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Reverse
-                }).ToList();
+            var commitFilter = new CommitFilter()
+            {
+                FirstParentOnly = false,
+                SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Reverse
+            };
 
-            // TODO: filter revspec
+            if (RevisionRange != null)
+            {
+                var revSpec = RevSpec.Parse(repo, RevisionRange);
+                if (revSpec.Type == RevSpecType.Single)
+                {
+                    commitFilter.Since = revSpec.From.Id;
+                }
+                else if (revSpec.Type == RevSpecType.Range)
+                {
+                    commitFilter.Range = RevisionRange;
+                }
+            }
+
+            // Gets all commits in topological reverse order
+            var commits = repo.Commits.QueryBy(commitFilter).ToList();
 
             // Process commits
             for (int i = 0; i < commits.Count; i++)
@@ -290,7 +303,7 @@ namespace GitRocketFilterBranch
         private void CompileScripts()
         {
             // Nothing to compiled?
-            if (hasTreeFilteringWithScripts || hasCommitFiltering)
+            if (!hasTreeFilteringWithScripts && !hasCommitFiltering)
             {
                 return;
             }
@@ -345,7 +358,7 @@ namespace GitRocketFilterBranch
                 MetadataReference.CreateFromFile(typeof (Enumerable).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof (File).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof (Repository).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof (RocketFilterBranch).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof (RocketFilter).Assembly.Location),
             };
 
             var compilation = CSharpCompilation.Create(
@@ -399,14 +412,16 @@ namespace GitRocketFilterBranch
             string line;
             for(int i = 0; (line = codeReader.ReadLine()) != null; i++)
             {
-                errorMessage.AppendFormat(CultureInfo.InvariantCulture, "{0}: {1}", i, line);
+                errorMessage.AppendFormat(CultureInfo.InvariantCulture, "{0,4}: {1}\n", i, line);
             }
 
+            errorMessage.AppendLine();
             errorMessage.AppendLine("Error while compiling the scripts above:");
-
+            errorMessage.AppendLine();
             foreach (var failure in failures)
             {
-                errorMessage.AppendFormat("\t {0}: {1}\n", failure.Id, failure.GetMessage());
+                var lineSpan = failure.Location.GetLineSpan();
+                errorMessage.AppendFormat("  ({0}): {1} {2}: {3}\n", lineSpan.StartLinePosition, failure.Severity, failure.Id, failure.GetMessage());
             }
             return errorMessage.ToString();
         }
@@ -641,9 +656,7 @@ namespace GitRocketFilterBranch
 
                     if (!remap.TryGetValue(parent.Id, out remapParent))
                     {
-                        throw new RocketException(
-                            "Unexpected error while processing parent commits. Unable to remap commit [{0}] with parent commit [{1}] to new commit.",
-                            commit.Id, parent.Id);
+                        remapParent = parent.GitCommit;
                     }
 
                     newParents.Add(remapParent);
@@ -656,7 +669,13 @@ namespace GitRocketFilterBranch
                     }
                 }
 
-                TODO THIS CODE IS NOT WORKING ANYMORE
+                // If we don't have any tree filtering, just use the original tree
+                if (newTree == null)
+                {
+                    newTree = commit.Tree;
+                }
+
+                //TODO THIS CODE IS NOT WORKING ANYMORE
 
                 // If we need to create a new commit (new tree)
                 if (newCommit == null)
