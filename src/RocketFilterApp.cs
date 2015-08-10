@@ -263,7 +263,7 @@ namespace GitRocketFilter
             string line;
             while ((line = reader.ReadLine()) != null)
             {
-                if ((!isInMultiLineScript && string.IsNullOrWhiteSpace(line)) || line.StartsWith("#"))
+                if ((!isInMultiLineScript && string.IsNullOrWhiteSpace(line)) || line.TrimStart().StartsWith("#"))
                 {
                     continue;
                 }
@@ -275,8 +275,7 @@ namespace GitRocketFilter
                         isInMultiLineScript = false;
                         multiLineScript.AppendLine(line.Substring(0, endOfScriptIndex));
 
-                        pathPatterns.Add(new PathPattern(tempRocketPath, currentMultilinePath,
-                            multiLineScript.ToString(), true));
+                        pathPatterns.Add(new PathPattern(tempRocketPath, currentMultilinePath, multiLineScript.ToString()));
                         multiLineScript.Length = 0;
                     }
                     else
@@ -291,7 +290,7 @@ namespace GitRocketFilter
                     {
                         var pathPatternText = line.Substring(0, scriptIndex).TrimEnd();
                         var textScript = line.Substring(scriptIndex + 2).TrimEnd();
-                        var pathPattern = new PathPattern(tempRocketPath, pathPatternText, textScript, false);
+                        var pathPattern = new PathPattern(tempRocketPath, pathPatternText, textScript);
                         pathPatterns.Add(pathPattern);
                     }
 
@@ -831,13 +830,12 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                 Ignore = Repository.Ignore;
             }
 
-            public PathPattern(string repoIgnorePath, string path, string scriptText, bool isMultiLine)
+            public PathPattern(string repoIgnorePath, string path, string scriptText)
             {
                 if (repoIgnorePath == null) throw new ArgumentNullException("repoIgnorePath");
                 if (path == null) throw new ArgumentNullException("path");
                 Path = path;
                 ScriptText = scriptText;
-                IsMultiLine = isMultiLine;
                 Repository = new Repository(repoIgnorePath);
                 Repository.Ignore.AddTemporaryRules(new[] { path });
                 Ignore = Repository.Ignore;
@@ -846,8 +844,6 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             public readonly string Path;
 
             public readonly string ScriptText;
-
-            public readonly bool IsMultiLine;
 
             public PathPatternCallbackDelegate Callback;
 
