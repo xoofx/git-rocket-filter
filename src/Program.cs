@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,8 +11,6 @@ namespace GitRocketFilter
     {
         private static int Main(string[] args)
         {
-            var clock = Stopwatch.StartNew();
-
             var rocket = new RocketFilterApp();
 
             var exeName = Path.GetFileNameWithoutExtension(typeof(Program).Assembly.Location);
@@ -182,84 +176,7 @@ namespace GitRocketFilter
                     throw;
                 }
             }
-
-            //if (options.RepositoryPath != null &&
-            //    !Directory.Exists(options.RepositoryPath))
-            //{
-            //    Console.Error.WriteLine("Invalid directory [{0}]",
-            //        options.RepositoryPath);
-            //    return 1;
-            //}
-
-            //var repoPath = options.RepositoryPath ??
-            //                Environment.CurrentDirectory;
-
-            //if (!Repository.IsValid(repoPath))
-            //{
-            //    Console.Error.WriteLine("There is no valid repository in the directory [{0}]", repoPath);
-
-
-            //    Console.Error.WriteLine(new AutomaticHelpGenerator<Options>().GetUsage());
-            //    return 1;
-            //}
-
-            //var rocket =
-            //    new RocketFilterApp(options.RepositoryPath ??
-            //                            Environment.CurrentDirectory);
-
-            //if (!options.KeepPatterns.Any() && !options.DeletePatterns.Any() && !options.KeepPatternsFiles.Any() &&
-            //    !options.DeletePatternsFiles.Any())
-            //{
-            //    Console.Error.WriteLine(new AutomaticHelpGenerator<Options>().GetUsage());
-
-            //    Console.Error.WriteLine("Expecting at least a keep or delete pattern");
-            //    return 1;
-            //}
-
-            //rocket.WhiteListPathPatterns = string.Join("\n",
-            //    options.KeepPatterns);
-
-            //rocket.BlackListPathPatterns = string.Join("\n",
-            //    options.DeletePatterns);
-
-
-            //// TODO: Add from files
-
-            //rocket.BranchName = options.Branch;
-
-            //
-
             return 0;
-
-//            var program = new RocketFilterApp(args[0]);
-
-//            var clock = Stopwatch.StartNew();
-//            //program.WhiteListPathPatterns = @"/** => entry.IsBlob && !entry.IsBinary && entry.DataAsText.Contains(""contact"")";
-//            program.WhiteListPathPatterns = @"/** {%
-//    if (entry.IsBlob && !entry.IsBinary && entry.DataAsText.Contains(""contact""))
-//    {
-//        Console.WriteLine(""Match {0}"", entry.Path);
-//        return true;
-//    }
-//    return false;
-//%}
-//";
-//            program.BranchName = "master2";
-
-//            program.WhiteListPathPatterns = @"External/gccxml
-//                External/Mono.Cecil
-//                External/Mono.Options
-//                External/ICSharpCode.SharpZipLib
-//                External/HtmlAgilityPack
-//                Source/Tools/SharpCli
-//                Source/Tools/SharpGen
-//                Source/Tools/SharpCore";
-//            program.BranchName = "master2";
-            
-            
-            
-            //program.Process();
-            Console.WriteLine("Elapsed: {0}ms", clock.ElapsedMilliseconds);
         }
 
         private static string SafeReadText(string path, string optionName)
