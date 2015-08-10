@@ -1421,6 +1421,12 @@
             </para>
             </summary>
         </member>
+        <member name="P:LibGit2Sharp.CommitFilter.Range">
+            <summary>
+            Gets or sets the range spec from..to or a list of range.
+            </summary>
+            <value>The range.</value>
+        </member>
         <member name="P:LibGit2Sharp.CommitFilter.Until">
             <summary>
             A pointer to a commit object or a list of pointers which will be excluded (along with ancestors) from the enumeration.
