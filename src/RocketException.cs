@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GitRocketFilterBranch
+namespace GitRocketFilter
 {
     /// <summary>
     /// An exception used to display errors (compilation, invalid parameters...etc).
@@ -24,5 +24,11 @@ namespace GitRocketFilterBranch
             : base(string.Format(formatMessage, args))
         {
         }
+
+        /// <summary>
+        /// Gets or sets the additional text.
+        /// </summary>
+        /// <value>The additional text.</value>
+        public string AdditionalText { get; set; }
     }
 }

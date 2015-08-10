@@ -1,7 +1,7 @@
 using System;
 using LibGit2Sharp;
 
-namespace GitRocketFilterBranch
+namespace GitRocketFilter
 {
     internal struct TreeEntryWrapper : IEquatable<TreeEntryWrapper>
     {

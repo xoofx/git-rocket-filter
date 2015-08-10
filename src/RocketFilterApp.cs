@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,19 +13,19 @@ using LibGit2Sharp;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace GitRocketFilterBranch
+namespace GitRocketFilter
 {
-    public class RocketFilter
+    public class RocketFilterApp
     {
-        private const string MethodCommitFilterName = "__CommitFilterMethod";
+        private const string MethodCommitFilterName = "CommitFilterMethod";
 
-        private delegate bool CommitFilteringCallbackDelegate(Repository repo, SimpleCommit commit);
+        private delegate void CommitFilteringCallbackDelegate(Repository repo, SimpleCommit commit);
 
-        private delegate bool PathPatternCallbackDelegate(Repository repo, SimpleCommit commit, ref SimpleEntry entry);
+        private delegate void PathPatternCallbackDelegate(Repository repo, string pattern, SimpleCommit commit, ref SimpleEntry entry);
 
         private readonly Dictionary<Commit, SimpleCommit> simpleCommits = new Dictionary<Commit, SimpleCommit>(); 
 
-        private readonly Dictionary<ObjectId, Commit> remap;
+        private readonly Dictionary<ObjectId, Commit> commitMap;
         private Repository repo;
         private Commit lastCommit;
 
@@ -41,11 +43,14 @@ namespace GitRocketFilterBranch
 
         private RevSpec revisionSpec;
         private string branchRef;
+        private Stopwatch clock;
 
-        public RocketFilter()
+        private readonly HashSet<Commit> commitsDiscarded = new HashSet<Commit>();
+
+        public RocketFilterApp()
         {
-            remap = new Dictionary<ObjectId, Commit>();
-            tempRocketPath = Path.Combine(Path.GetTempPath(), ".gitRocketFilterBranch");
+            commitMap = new Dictionary<ObjectId, Commit>();
+            tempRocketPath = Path.Combine(Path.GetTempPath(), ".gitRocketFilter");
             Repository.Init(tempRocketPath, true);
         }
 
@@ -69,8 +74,12 @@ namespace GitRocketFilterBranch
 
         public string RevisionRange { get; set; }
 
+        public bool DetachFirstCommits { get; set; }
+
         public void Run()
         {
+            clock = Stopwatch.StartNew();
+
             // Validate paramters
             ValidateParameters();
 
@@ -85,6 +94,16 @@ namespace GitRocketFilterBranch
 
             // Output the branch refs
             WriteBranchRefs();
+        }
+
+        internal SimpleCommit GetMapCommit(SimpleCommit commit)
+        {
+            Commit rewritten;
+            if (commitMap.TryGetValue(commit.Id, out rewritten))
+            {
+                return GetSimpleCommit(rewritten);
+            }
+            return null;
         }
 
         private void ValidateParameters()
@@ -114,9 +133,9 @@ namespace GitRocketFilterBranch
                 {
                     revisionSpec = RevSpec.Parse(repo, RevisionRange);
 
-                    if (revisionSpec.Type != RevSpecType.Range)
+                    if (revisionSpec.Type == RevSpecType.MergeBase)
                     {
-                        errorMessage = "Expecting a range spec from..to";
+                        errorMessage = "Merge base revspec are not supported";
                     }
                 }
                 catch (LibGit2SharpException libGitException)
@@ -134,8 +153,8 @@ namespace GitRocketFilterBranch
         private void PrepareFiltering()
         {
             // Prepare tree filtering
-            whiteListPathPatterns = ParseTreeFilteringPathPatterns(WhiteListPathPatterns);
-            blackListPathPatterns = ParseTreeFilteringPathPatterns(BlackListPathPatterns);
+            whiteListPathPatterns = ParseTreeFilteringPathPatterns(WhiteListPathPatterns, "--keep");
+            blackListPathPatterns = ParseTreeFilteringPathPatterns(BlackListPathPatterns, "--delete");
             hasTreeFiltering = whiteListPathPatterns.Count > 0 ||
                                blackListPathPatterns.Count > 0;
 
@@ -180,15 +199,24 @@ namespace GitRocketFilterBranch
             for (int i = 0; i < commits.Count; i++)
             {
                 var commit = GetSimpleCommit(commits[i]);
-                // TODO: LOG
-                // Console.Write("[{0}/{1}] Processing commit {2}\r", i, commits.Count - 1, commit.Id);
+
+                Console.Write("Rewrite {0} ({1}/{2}){3}", commit.Id, i + 1, commits.Count, (i+1) == commits.Count ? string.Empty : "\r");
                 ProcessCommit(commit);
+            }
+            if (commits.Count == 0)
+            {
+                Console.WriteLine("Nothing to rewrite.");
+            }
+            else
+            {
+                Console.WriteLine(" in {0:#.###}s", clock.Elapsed.TotalSeconds);
             }
         }
 
         private void WriteBranchRefs()
         {
-            if ((repo.Refs[branchRef] == null || BranchOverwrite) && lastCommit != null)
+            var originalRef = repo.Refs[branchRef];
+            if ((originalRef == null || BranchOverwrite) && lastCommit != null)
             {
                 if (BranchOverwrite)
                 {
@@ -196,6 +224,7 @@ namespace GitRocketFilterBranch
                 }
 
                 repo.Refs.Add(branchRef, lastCommit.Id);
+                Console.WriteLine("Ref '{0}' was {1}", branchRef, originalRef != null && BranchOverwrite ? "overwritten" : "created");
             }
         }
 
@@ -212,7 +241,7 @@ namespace GitRocketFilterBranch
             return simpleCommit;
         }
 
-        private PathPatterns ParseTreeFilteringPathPatterns(string pathPatternsAsText)
+        private PathPatterns ParseTreeFilteringPathPatterns(string pathPatternsAsText, string context)
         {
             var pathPatterns = new PathPatterns();
 
@@ -292,6 +321,15 @@ namespace GitRocketFilterBranch
             {
                 var repoFilter = new Repository(tempRocketPath);
                 repoFilter.Ignore.ResetAllTemporaryRules();
+
+                if (Verbose)
+                {
+                    foreach (var pattern in pathPatternsNoScript)
+                    {
+                        Console.WriteLine("Found {0} pattern [{1}]", context, pattern);
+                    }
+                }
+
                 repoFilter.Ignore.AddTemporaryRules(pathPatternsNoScript);
                 // Add the white list repo at the end to let the scripted rules to run first
                 pathPatterns.Add(new PathPattern(repoFilter));
@@ -324,11 +362,14 @@ using LibGit2Sharp;
                 classText.Append(ScriptUsingDirectives);
             }
 
-            classText.Append(@"
-namespace GitRocketFilterBranch
+            classText.AppendFormat(@"
+namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
 {
-    public class RocketScript
+    public class RocketScript : RocketScriptBase
     {
+        public RocketScript(RocketFilterApp app) : base(app)
+        {
+        }
 ");
             // Add user custom member declarations
             if (!string.IsNullOrWhiteSpace(ScriptMemberDeclarations))
@@ -358,7 +399,7 @@ namespace GitRocketFilterBranch
                 MetadataReference.CreateFromFile(typeof (Enumerable).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof (File).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof (Repository).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof (RocketFilter).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof (RocketFilterApp).Assembly.Location),
             };
 
             var compilation = CSharpCompilation.Create(
@@ -376,8 +417,8 @@ namespace GitRocketFilterBranch
                     stream.Position = 0;
                     var assembly = Assembly.Load(stream.ToArray());
 
-                    var type = assembly.GetType("GitRocketFilterBranch.RocketScript");
-                    var instance = Activator.CreateInstance(type);
+                    var type = assembly.GetType(typeof(RocketFilterApp).Namespace + ".RocketScript");
+                    var instance = Activator.CreateInstance(type, this);
 
                     // Rebing methods
                     foreach (var method in type.GetMethods())
@@ -399,24 +440,28 @@ namespace GitRocketFilterBranch
                         diagnostic.IsWarningAsError ||
                         diagnostic.Severity == DiagnosticSeverity.Error);
 
-                    throw new RocketException(BuildCodeErrors(code, failures));
+                    throw new RocketException(BuildCodeErrors(failures)) { AdditionalText =  DumpPrettyCode(code)};
                 }
             }
         }
 
-        private string BuildCodeErrors(string code, IEnumerable<Diagnostic> failures)
+        private string DumpPrettyCode(string code)
         {
-            var errorMessage = new StringBuilder(code.Length + 1024);
-
+            var prettyCode = new StringBuilder(code.Length + 1024);
             var codeReader = new StringReader(code);
             string line;
-            for(int i = 0; (line = codeReader.ReadLine()) != null; i++)
+            for (int i = 0; (line = codeReader.ReadLine()) != null; i++)
             {
-                errorMessage.AppendFormat(CultureInfo.InvariantCulture, "{0,4}: {1}\n", i, line);
+                prettyCode.AppendFormat(CultureInfo.InvariantCulture, "{0,4}: {1}\n", i, line);
             }
+            return prettyCode.ToString();
+        }
 
+        private string BuildCodeErrors(IEnumerable<Diagnostic> failures)
+        {
+            var errorMessage = new StringBuilder();
             errorMessage.AppendLine();
-            errorMessage.AppendLine("Error while compiling the scripts above:");
+            errorMessage.AppendLine("Error while compiling the script:");
             errorMessage.AppendLine();
             foreach (var failure in failures)
             {
@@ -434,54 +479,63 @@ namespace GitRocketFilterBranch
             }
 
             classText.AppendFormat(@"
-        public bool {0}", MethodCommitFilterName)
+        // commit-filtering
+        public void {0}", MethodCommitFilterName)
                 .Append(@"(Repository repo, SimpleCommit commit)
         {
 ");
-            classText.Append(GetSafeScriptBody(commitFilter, false));
+            classText.Append(GetSafeScriptBody(commitFilter));
             classText.Append(@"
         }
 ");
         }
 
-        private static void AppendTreeFilterMethods(IEnumerable<PathPattern> pathPatterns, StringBuilder classText, Dictionary<string, PathPattern> methodNames)
+        private void AppendTreeFilterMethods(IEnumerable<PathPattern> pathPatterns, StringBuilder classText, Dictionary<string, PathPattern> methodNames)
         {
-            const string methodTreeFilterPrefix = "__TreeFilterMethod";
+            if (!hasTreeFilteringWithScripts)
+            {
+                return;
+            }
+
+            const string methodTreeFilterPrefix = "TreeFilterMethod";
 
             foreach (var pathPattern in pathPatterns)
             {
+                // Skip non script text
+                if (pathPattern.ScriptText == null)
+                {
+                    continue;
+                }
+
                 var methodName = string.Format(CultureInfo.InvariantCulture, "{0}{1}", methodTreeFilterPrefix, methodNames.Count);
                 methodNames.Add(methodName, pathPattern);
 
                 classText.AppendFormat(@"
-        public bool {0}", methodName)
-                    .Append(@"(Repository repo, SimpleCommit commit, ref SimpleEntry entry)
+        // tree-filtering: {0}", pathPattern.Path).AppendFormat(@"
+        public void {0}", methodName)
+                    .Append(@"(Repository repo, string pattern, SimpleCommit commit, ref SimpleEntry entry)
         {
 ");
-                classText.Append(GetSafeScriptBody(pathPattern.ScriptText, pathPattern.IsMultiLine));
+                classText.Append(GetSafeScriptBody(pathPattern.ScriptText));
                 classText.Append(@"
         }
 ");
             }
         }
 
-        private static string GetSafeScriptBody(string scriptText, bool isMultiline)
+        private static string GetSafeScriptBody(string scriptText)
         {
-            if (!isMultiline)
-            {
-                var scriptTextTrim = scriptText.Trim();
-
-                // TODO: Would be more reliable if we were able to determine if this is a script enclosed by { } or a simple condition. Should check this with roslyn
-                if (!scriptTextTrim.StartsWith("{"))
-                {
-                    return "return " + scriptText + ";\n";
-                }
-            }
-            return scriptText;
+            return "{\n" + scriptText + "\n}\n";
         }
 
         private void BuildWhiteList(SimpleCommit commit, Tree tree)
         {
+            // Early exit if the commit was discarded by a tree-filtering
+            if (commit.Discard)
+            {
+                return;
+            }
+
             lock (pendingTasks)
             {
                 var task = Task.Factory.StartNew(() =>
@@ -508,6 +562,12 @@ namespace GitRocketFilterBranch
 
         private void EvaluateEntry(SimpleCommit commit, TreeEntry entry, PathPatterns globalPattern, bool keepOnIgnore)
         {
+            // Early exit if the commit was discarded by a tree-filtering
+            if (commit.Discard)
+            {
+                return;
+            }
+
             lock (pendingTasks)
             {
                 var checkTask = Task.Factory.StartNew(() =>
@@ -518,12 +578,19 @@ namespace GitRocketFilterBranch
                     // If path is ignored we can update the entries to keep
                     if (match.IsIgnored)
                     {
+
                         // If callback return false, then we don't update entries to keep or delete
-                        var callback = match.Pattern.Callback;
+                        var pattern = match.Pattern;
+                        var callback = pattern.Callback;
                         if (callback != null)
                         {
                             var simpleEntry = new SimpleEntry(entry);
-                            if (!callback(repo, commit, ref simpleEntry))
+
+                            // Calls the script
+                            callback(repo, pattern.Path, commit, ref simpleEntry);
+
+                            // Skip if this entry was discarded
+                            if (simpleEntry.Discard || commit.Discard)
                             {
                                 return;
                             }
@@ -609,94 +676,140 @@ namespace GitRocketFilterBranch
 
         private void ProcessCommit(SimpleCommit commit)
         {
-            bool discardCommit = false;
+            // ------------------------------------
+            // commit-filtering
+            // ------------------------------------
             if (commitFilteringCallback != null)
             {
-                discardCommit = !commitFilteringCallback(repo, commit);
+                // Filter this commit
+                commitFilteringCallback(repo, commit);
+
+                if (commit.Discard)
+                {
+                    // Store that this commit was discarded (used for reparenting commits)
+                    commitsDiscarded.Add(commit.GitCommit);
+                    return;
+                }
             }
 
             // Map parents of previous commit to new parents
             // Check if at least a parent has the same tree, if yes, we don't need to create a new commit
             Commit newCommit = null;
-            Tree newTree = null;
+            Tree newTree;
 
-            // clear the cache of entries to keep and the tasks to run
-            entriesToKeep.Clear();
-
-            if (!discardCommit)
+            // ------------------------------------
+            // tree-filtering
+            // ------------------------------------
+            if (hasTreeFiltering)
             {
-                if (hasTreeFiltering)
-                {
-                    var tree = commit.Tree;
+                // clear the cache of entries to keep and the tasks to run
+                entriesToKeep.Clear();
 
-                    // Process white list
-                    BuildWhiteList(commit, tree);
+                // Process white list
+                BuildWhiteList(commit, commit.Tree);
+                ProcessPendingTasks();
+
+                // Process black list
+                if (blackListPathPatterns.Count > 0)
+                {
+                    BuildBlackList(commit);
                     ProcessPendingTasks();
-
-                    // Process black list
-                    if (blackListPathPatterns.Count > 0)
-                    {
-                        BuildBlackList(commit);
-                        ProcessPendingTasks();
-                    }
-
-                    // Rebuild a new tree based on the list of entries to keep
-                    var treeDef = new TreeDefinition();
-                    foreach (var entry in entriesToKeep)
-                    {
-                        treeDef.Add(entry.TreeEntry.Path, entry);
-                    }
-                    newTree = repo.ObjectDatabase.CreateTree(treeDef);
                 }
 
-                var newParents = new List<Commit>();
-                foreach (var parent in commit.Parents)
+                // If the commit was discarded by a tree-filtering, we need to skip it also here
+                if (commit.Discard)
                 {
-                    Commit remapParent;
-
-                    if (!remap.TryGetValue(parent.Id, out remapParent))
-                    {
-                        remapParent = parent.GitCommit;
-                    }
-
-                    newParents.Add(remapParent);
-
-                    // If parent tree is equal, we can prune this commit
-                    if (newTree != null && remapParent.Tree.Id == newTree.Id)
-                    {
-                        newCommit = remapParent;
-                        newTree = null;
-                    }
+                    // Store that this commit was discarded (used for reparenting commits)
+                    commitsDiscarded.Add(commit.GitCommit);
+                    return;
                 }
 
-                // If we don't have any tree filtering, just use the original tree
-                if (newTree == null)
+                // Rebuild a new tree based on the list of entries to keep
+                var treeDef = new TreeDefinition();
+                foreach (var entry in entriesToKeep)
                 {
-                    newTree = commit.Tree;
+                    treeDef.Add(entry.TreeEntry.Path, entry);
                 }
-
-                //TODO THIS CODE IS NOT WORKING ANYMORE
-
-                // If we need to create a new commit (new tree)
-                if (newCommit == null)
-                {
-                    var author = new Signature(commit.AuthorName, commit.AuthorEmail, commit.AuthorDate);
-                    var committer = new Signature(commit.CommitterName, commit.CommitterEmail, commit.CommitterDate);
-
-                    newCommit = repo.ObjectDatabase.CreateCommit(author, committer, commit.Message,
-                        newTree,
-                        newParents, false);
-                }
-                // Store the remapping between the old commit and the new commit
-                remap.Add(commit.Id, newCommit);
+                newTree = repo.ObjectDatabase.CreateTree(treeDef);
             }
             else
             {
-                newCommit = lastCommit;
+                // If we don't have any tree filtering, just use the original tree
+                newTree = commit.Tree;
             }
+
+            var newParents = new List<Commit>();
+            bool hasOriginalParents = false;
+            bool treePruned = false;
+            foreach (var parent in commit.Parents)
+            {
+                // Find a non discarded parent
+                var remapParent = FindRewrittenParent(parent.GitCommit);
+
+                // If parent is same, then it is an original parent that can be detached by DetachFirstCommits
+                hasOriginalParents = parent.GitCommit == remapParent;
+
+                newParents.Add(remapParent);
+
+                // If parent tree is equal, we can prune this commit
+                if (!treePruned && remapParent.Tree.Id == newTree.Id)
+                {
+                    newCommit = remapParent;
+                    commitsDiscarded.Add(commit.GitCommit);
+                    treePruned = true;
+                }
+            }
+
+            // If we detach first commits from their parents
+            if (DetachFirstCommits && hasOriginalParents)
+            {
+                // Remove original parents
+                foreach (var parent in commit.Parents)
+                {
+                    newParents.Remove(parent.GitCommit);
+                }
+            }
+
+            // If we need to create a new commit (new tree)
+            if (newCommit == null)
+            {
+                var author = new Signature(commit.AuthorName, commit.AuthorEmail, commit.AuthorDate);
+                var committer = new Signature(commit.CommitterName, commit.CommitterEmail, commit.CommitterDate);
+
+                newCommit = repo.ObjectDatabase.CreateCommit(author, committer, commit.Message,
+                    newTree,
+                    newParents, false);
+            }
+
+            // Store the remapping between the old commit and the new commit
+            commitMap.Add(commit.Id, newCommit);
 
             // Store the last commit
             lastCommit = newCommit;
+        }
+
+        private Commit FindRewrittenParent(Commit commit)
+        {
+            Commit newCommit;
+            if (!commitMap.TryGetValue(commit.Id, out newCommit))
+            {
+                newCommit = commit;
+
+                if (commitsDiscarded.Contains(newCommit))
+                {
+                    // If parent commit was discarded, we need to find an available parent of this commit
+                    foreach (var parent in newCommit.Parents)
+                    {
+                        var newParent = FindRewrittenParent(parent);
+                        if (newParent != null)
+                        {
+                            return newParent;
+                        }
+                    }
+                }
+            }
+
+            return newCommit;
         }
 
         private class PathPatterns : List<PathPattern>

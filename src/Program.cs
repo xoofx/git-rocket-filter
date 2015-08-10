@@ -9,7 +9,7 @@ using System.Text;
 using LibGit2Sharp;
 using Mono.Options;
 
-namespace GitRocketFilterBranch
+namespace GitRocketFilter
 {
     internal class Program
     {
@@ -17,7 +17,7 @@ namespace GitRocketFilterBranch
         {
             var clock = Stopwatch.StartNew();
 
-            var rocket = new RocketFilter();
+            var rocket = new RocketFilterApp();
 
             var exeName = Path.GetFileNameWithoutExtension(typeof(Program).Assembly.Location);
             bool showHelp = false;
@@ -51,8 +51,9 @@ namespace GitRocketFilterBranch
                 _,
                 "## Options for commit filtering",
                 _,
-                {"commit-filter=", "Perform a rewrite of each commit by passing an {<expression>}. If the <expression> is true, the commit is kept, otherwise it is skipped. See Examples.", v => rocket.CommitFilter = v},
+                {"c|commit-filter=", "Perform a rewrite of each commit by passing an {<expression>}. If the <expression> is true, the commit is kept, otherwise it is skipped. See Examples.", v => rocket.CommitFilter = v},
                 {"commit-filter-script=", "Perform a rewrite of each commit by passing a file {<script>}. See Examples.", v => rocket.CommitFilter = SafeReadText(v, "commit-filter-script")},
+                {"detach", "Detach first commits rewritten from their original parents.", (bool v) => rocket.DetachFirstCommits = v },
                 _,
                 _,
                 "## Options for tree filtering",
@@ -73,13 +74,17 @@ namespace GitRocketFilterBranch
                 _,
                 "### Commit-Filtering",
                 _,
-                "1) " + exeName + " --branch newMaster --commit-filter 'commit.AuthorName.Length > 10'",
+                "1) " + exeName + " --branch newMaster --commit-filter 'commit.Discard = commit.AuthorName.Length <= 10;'",
                 _,
                 "   Keeps only commits with an author name with a length > 10.",
                 _,
-                "2) " + exeName + " --branch newMaster --commit-filter \"{{ if (commit.AuthorName.Contains(\\\"Marc\\\")) { commit.AuthorName = \\\"Jim\\\"; } return true; }}\"",
+                "2) " + exeName + " -b newMaster -c 'if (commit.AuthorName.Contains(\"Marc\")) {{ commit.AuthorName = \"Jim\"; }}'",
                 _,
                 "   Keeps all commits and rewrite commits with author name [Marc] by replacing by [Jim].",
+                _,
+                "3) " + exeName + " -b newMaster -c 'commit.Message += \"Added by rewrite!\";' HEAD~10..HEAD",
+                _,
+                "   Rewrite 10 last commits from HEAD by adding a text to their commit message.",
                 _,
                 "### Tree-Filtering",
                 _,
@@ -103,17 +108,20 @@ namespace GitRocketFilterBranch
                 "   Keeps only all files recursively from [/MyFolder] from a specific commit to the head and write",
                 "   the new commits to the [newMaster] branch.",
                 _,
-                "5) " + exeName + " --branch newMaster --keep \"/MyFolder => entry.IsBlob && entry.Size < 1024\"",
+                "5) " + exeName + " --branch newMaster --keep \"/MyFolder => entry.Discard = entry.Size > 1024;\"",
                 _,
                 "   Keeps recursively only files that are less than 1024 bytes from [/MyFolder] and write the new ",
                 "   commits to the [newMaster] branch.",
                 _,
+                "Note that on Windows with msysgit, path are interpreted and can lead to unexpected behavior when using --keep or --delete option on the command line.",
+                "Check http://www.mingw.org/wiki/Posix_path_conversion for more details",
+                _,
+                "For more advanced usages, see https://github.com/xoofx/GitRocketFilter"
             };
 
             options.OptionWidth = 40;
             options.LineWidth = 100;
             options.ShiftNewLine = 0;
-
             try
             {
                 var arguments = options.Parse(args);
@@ -122,6 +130,15 @@ namespace GitRocketFilterBranch
                 {
                     options.WriteOptionDescriptions(Console.Out);
                     return 0;
+                }
+
+                // Check that we don't have any options ending in the arguments
+                foreach (var argument in arguments)
+                {
+                    if (argument.StartsWith("-"))
+                    {
+                        throw new RocketException("Unexpected option [{0}]", argument);
+                    }
                 }
 
                 if (arguments.Count > 1)
@@ -148,11 +165,15 @@ namespace GitRocketFilterBranch
             {
                 if (exception is OptionException || exception is RocketException)
                 {
-                    Console.WriteLine("Error:");
                     var backColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(exception.Message);
                     Console.ForegroundColor = backColor;
+                    var rocketException = exception as RocketException;
+                    if (rocketException != null && rocketException.AdditionalText != null)
+                    {
+                        Console.WriteLine(rocketException.AdditionalText);
+                    }
                     Console.WriteLine("See --help for usage");
                     return 1;
                 }
@@ -183,7 +204,7 @@ namespace GitRocketFilterBranch
             //}
 
             //var rocket =
-            //    new RocketFilter(options.RepositoryPath ??
+            //    new RocketFilterApp(options.RepositoryPath ??
             //                            Environment.CurrentDirectory);
 
             //if (!options.KeepPatterns.Any() && !options.DeletePatterns.Any() && !options.KeepPatternsFiles.Any() &&
@@ -210,7 +231,7 @@ namespace GitRocketFilterBranch
 
             return 0;
 
-//            var program = new RocketFilter(args[0]);
+//            var program = new RocketFilterApp(args[0]);
 
 //            var clock = Stopwatch.StartNew();
 //            //program.WhiteListPathPatterns = @"/** => entry.IsBlob && !entry.IsBinary && entry.DataAsText.Contains(""contact"")";

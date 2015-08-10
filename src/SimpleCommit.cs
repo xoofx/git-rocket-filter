@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using LibGit2Sharp;
 
-namespace GitRocketFilterBranch
+namespace GitRocketFilter
 {
     /// <summary>
     /// Represents a git commit for scripting, with flattened properties with lower case name.
     /// </summary>
     public sealed class SimpleCommit
     {
-        private readonly RocketFilter rocket;
+        private readonly RocketFilterApp rocket;
         private readonly Commit commit;
 
         private string authorNameValue;
@@ -34,7 +34,7 @@ namespace GitRocketFilterBranch
         /// <param name="rocket">The rocket.</param>
         /// <param name="commit">The commit.</param>
         /// <exception cref="System.ArgumentNullException">commit</exception>
-        internal SimpleCommit(RocketFilter rocket, Commit commit)
+        internal SimpleCommit(RocketFilterApp rocket, Commit commit)
         {
             if (commit == null) throw new ArgumentNullException("commit");
             this.rocket = rocket;
