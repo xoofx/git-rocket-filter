@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace GitRocketFilter
 {
-    public class RocketFilterApp
+    public class RocketFilterApp : IDisposable
     {
         private const string MethodCommitFilterName = "CommitFilterMethod";
 
@@ -863,6 +863,15 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             public readonly bool IsIgnored;
 
             public readonly PathPattern Pattern;
+        }
+
+        public void Dispose()
+        {
+            if (repo != null)
+            {
+                repo.Dispose();
+                repo = null;
+            }
         }
     }
 }
