@@ -49,7 +49,7 @@ namespace GitRocketFilter.Tests
         }
 
         /// <summary>
-        /// Appends the message "This is a test" to all commits.
+        /// Appends the message "This is a test" to the previous 4 commits.
         /// </summary>
         [Fact]
         public void ModifyCommitMessageLast4()
