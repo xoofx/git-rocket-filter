@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using LibGit2Sharp;
 using Xunit;
 
@@ -30,6 +32,25 @@ namespace GitRocketFilter.Tests
         {
             Assert.NotNull(repo.Refs[NewBranchRef]);
             return repo.Refs[NewBranchRef].TargetIdentifier;
+        }
+
+        protected static List<Commit> GetCommits(Repository repo, string since = null)
+        {
+            var filter = new CommitFilter() {SortBy = CommitSortStrategies.Topological};
+            if (since != null)
+            {
+                filter.Since = since;
+            }
+            return
+                repo.Commits.QueryBy(filter)
+                    .ToList();
+        }
+        
+        protected static List<Commit> GetCommitsFromRange(Repository repo, string range)
+        {
+            return
+                repo.Commits.QueryBy(new CommitFilter() {Range = range, SortBy = CommitSortStrategies.Topological})
+                    .ToList();
         }
 
         // http://stackoverflow.com/a/648055/1356325
