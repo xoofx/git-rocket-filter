@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Alexandre MUTEL. All rights reserved.
+// Licensed under the BSD license. See LICENSE file in the project root for full license information.
 using System.Linq;
-using LibGit2Sharp;
 using Xunit;
 
 namespace GitRocketFilter.Tests
