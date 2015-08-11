@@ -537,26 +537,26 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                 return;
             }
 
+            var task = Task.Factory.StartNew(() =>
+            {
+                foreach (var entryIt in tree)
+                {
+                    var entry = entryIt;
+                    if (entry.TargetType == TreeEntryTargetType.Tree)
+                    {
+                        var subTree = (Tree) entry.Target;
+                        BuildWhiteList(commit, subTree);
+                    }
+                    else
+                    {
+                        EvaluateEntry(commit, entry, whiteListPathPatterns, true);
+                    }
+
+                }
+            });
+
             lock (pendingTasks)
             {
-                var task = Task.Factory.StartNew(() =>
-                {
-                    foreach (var entryIt in tree)
-                    {
-                        var entry = entryIt;
-                        if (entry.TargetType == TreeEntryTargetType.Tree)
-                        {
-                            var subTree = (Tree) entry.Target;
-                            BuildWhiteList(commit, subTree);
-                        }
-                        else
-                        {
-                            EvaluateEntry(commit, entry, whiteListPathPatterns, true);
-                        }
-
-                    }
-                });
-
                 pendingTasks.Add(task);
             }
         }
@@ -569,49 +569,49 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                 return;
             }
 
-            lock (pendingTasks)
+            var checkTask = Task.Factory.StartNew(() =>
             {
-                var checkTask = Task.Factory.StartNew(() =>
+                var path = entry.Path;
+                var match = Match(path, globalPattern);
+
+                // If path is ignored we can update the entries to keep
+                if (match.IsIgnored)
                 {
-                    var path = entry.Path;
-                    var match = Match(path, globalPattern);
 
-                    // If path is ignored we can update the entries to keep
-                    if (match.IsIgnored)
+                    // If callback return false, then we don't update entries to keep or delete
+                    var pattern = match.Pattern;
+                    var callback = pattern.Callback;
+                    if (callback != null)
                     {
+                        var simpleEntry = new SimpleEntry(entry);
 
-                        // If callback return false, then we don't update entries to keep or delete
-                        var pattern = match.Pattern;
-                        var callback = pattern.Callback;
-                        if (callback != null)
+                        // Calls the script
+                        callback(repo, pattern.Path, commit, ref simpleEntry);
+
+                        // Skip if this entry was discarded
+                        if (simpleEntry.Discard || commit.Discard)
                         {
-                            var simpleEntry = new SimpleEntry(entry);
-
-                            // Calls the script
-                            callback(repo, pattern.Path, commit, ref simpleEntry);
-
-                            // Skip if this entry was discarded
-                            if (simpleEntry.Discard || commit.Discard)
-                            {
-                                return;
-                            }
-                        }
-
-                        // We can update entries to keep
-                        lock (entriesToKeep)
-                        {
-                            if (keepOnIgnore)
-                            {
-                                entriesToKeep.Add(entry);
-                            }
-                            else
-                            {
-                                entriesToKeep.Remove(entry);
-                            }
+                            return;
                         }
                     }
-                });
 
+                    // We can update entries to keep
+                    lock (entriesToKeep)
+                    {
+                        if (keepOnIgnore)
+                        {
+                            entriesToKeep.Add(entry);
+                        }
+                        else
+                        {
+                            entriesToKeep.Remove(entry);
+                        }
+                    }
+                }
+            });
+
+            lock (pendingTasks)
+            {
                 pendingTasks.Add(checkTask);
             }
         }
