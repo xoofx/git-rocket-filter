@@ -7,22 +7,24 @@ using Mono.Options;
 
 namespace GitRocketFilter
 {
-    internal class Program
+    public class Program
     {
-        private static int Main(string[] args)
+        public static int Main(params string[] args)
         {
             var rocket = new RocketFilterApp();
 
             var exeName = Path.GetFileNameWithoutExtension(typeof(Program).Assembly.Location);
             bool showHelp = false;
             var keeps = new StringBuilder();
-            var deletes = new StringBuilder();
+            var removes = new StringBuilder();
+
+            string repositoryPath = Environment.CurrentDirectory;
 
             var _ = string.Empty;
             var options = new OptionSet
             {
                 "Copyright (C) 2015 Alexandre Mutel. All Rights Reserved",
-                "git-rocket-filter-branch - Version: "
+                "git-rocket-filter - Version: "
                 +
                 String.Format(
                     "{0}.{1}.{2}",
@@ -42,6 +44,7 @@ namespace GitRocketFilter
                 _,
                 {"h|help", "Show this message and exit", (bool v) => showHelp = v},
                 {"v|verbose", "Show more verbose progress logs", (bool v) => rocket.Verbose = v},
+                {"d|repo-dir=", "By default git-rocket-filter is running in the current directory expected to be a git repository. You can change this repository by passing a new repository path with this option", v => repositoryPath = v },
                 _,
                 "## Options for commit filtering",
                 _,
@@ -58,9 +61,9 @@ namespace GitRocketFilter
                 _,
                 {"keep-from-file=", "Keep files that match the patterns defined in the {<pattern_file>} from the current tree being visited (whitelist).", v=> keeps.Append(SafeReadText(v, "keep-from-file"))},
                 _,
-                {"d|delete=", "Delete files that match the {<pattern>} from the current tree being visited (blacklist).", v => deletes.AppendLine(v)},
+                {"r|remove=", "Remove files that match the {<pattern>} from the current tree being visited (blacklist).", v => removes.AppendLine(v)},
                 _,
-                {"delete-from-file=", "Delete files that match the patterns defined in the {<pattern_file>} from the current tree being visited (blacklist). ", v=> deletes.Append(SafeReadText(v, "delete-from-file"))},
+                {"remove-from-file=", "Remove files that match the patterns defined in the {<pattern_file>} from the current tree being visited (blacklist). ", v=> removes.Append(SafeReadText(v, "remove-from-file"))},
                 _,
                 "## Examples",
                 _,
@@ -87,12 +90,12 @@ namespace GitRocketFilter
                 "   Keeps only all files recursively from [/MyFolder] and write the new commits to the [newMaster]",
                 "   branch.",
                 _,
-                "2) " + exeName + " --branch newMaster --delete /MyFolder",
+                "2) " + exeName + " --branch newMaster --remove /MyFolder",
                 _,
-                "   Delete only all files recursively from [/MyFolder] and write the new commits to the [newMaster]",
+                "   Removes only all files recursively from [/MyFolder] and write the new commits to the [newMaster]",
                 "   branch.",
                 _,
-                "3) " + exeName + " --branch newMaster --keep /MyFolder --delete /MyFolder/Test.txt",
+                "3) " + exeName + " --branch newMaster --keep /MyFolder --remove /MyFolder/Test.txt",
                 _,
                 "   Keeps all files recursively from [/MyFolder] except [Test.txt] and write the new commits to the",
                 "   [newMaster] branch.",
@@ -107,7 +110,7 @@ namespace GitRocketFilter
                 "   Keeps recursively only files that are less than 1024 bytes from [/MyFolder] and write the new ",
                 "   commits to the [newMaster] branch.",
                 _,
-                "Note that on Windows with msysgit, path are interpreted and can lead to unexpected behavior when using --keep or --delete option on the command line.",
+                "Note that on Windows with msysgit, path are interpreted and can lead to unexpected behavior when using --keep or --remove option on the command line.",
                 "Check http://www.mingw.org/wiki/Posix_path_conversion for more details",
                 _,
                 "For more advanced usages, see https://github.com/xoofx/GitRocketFilter"
@@ -137,22 +140,23 @@ namespace GitRocketFilter
 
                 if (arguments.Count > 1)
                 {
-                    throw new RocketException("Expected only a single revspec. Unexpected arguments [{0}]", string.Join(" ", arguments.Skip(1)));
+                    throw new RocketException("Expected only a single revspec. Unexpected arguments [{0}]",
+                        string.Join(" ", arguments.Skip(1)));
                 }
                 else if (arguments.Count == 1)
                 {
                     rocket.RevisionRange = arguments[0];
                 }
 
-                rocket.RepositoryPath = Repository.Discover(Environment.CurrentDirectory);
+                rocket.RepositoryPath = Repository.Discover(repositoryPath);
 
                 if (rocket.RepositoryPath == null)
                 {
-                    throw new RocketException("No git directory found from [{0}]", Environment.CurrentDirectory);
+                    throw new RocketException("No git directory found from [{0}]", repositoryPath);
                 }
 
                 rocket.WhiteListPathPatterns = keeps.ToString();
-                rocket.BlackListPathPatterns = deletes.ToString();
+                rocket.BlackListPathPatterns = removes.ToString();
                 rocket.Run();
             }
             catch (Exception exception)
@@ -175,6 +179,10 @@ namespace GitRocketFilter
                 {
                     throw;
                 }
+            }
+            finally
+            {
+                rocket.Dispose();
             }
             return 0;
         }
