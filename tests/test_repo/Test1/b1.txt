@@ -1,0 +1,3 @@
+empty b1 modify line1
+empty b1 newline
+test3
