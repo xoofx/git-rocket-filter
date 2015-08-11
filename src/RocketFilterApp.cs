@@ -29,7 +29,7 @@ namespace GitRocketFilter
         private Repository repo;
         private Commit lastCommit;
 
-        private readonly HashSet<TreeEntryWrapper> entriesToKeep = new HashSet<TreeEntryWrapper>();
+        private readonly HashSet<TreeEntry> entriesToKeep = new HashSet<TreeEntry>();
 
         private readonly List<Task> pendingTasks = new List<Task>();
 
@@ -727,7 +727,7 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                 var treeDef = new TreeDefinition();
                 foreach (var entry in entriesToKeep)
                 {
-                    treeDef.Add(entry.TreeEntry.Path, entry);
+                    treeDef.Add(entry.Path, entry);
                 }
                 newTree = repo.ObjectDatabase.CreateTree(treeDef);
             }

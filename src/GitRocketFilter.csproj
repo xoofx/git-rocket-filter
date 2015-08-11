@@ -67,7 +67,6 @@
     <Compile Include="RocketScriptBase.cs" />
     <Compile Include="SimpleEntry.cs" />
     <Compile Include="SimpleCommit.cs" />
-    <Compile Include="TreeEntryWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

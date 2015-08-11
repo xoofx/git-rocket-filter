@@ -9,7 +9,6 @@ namespace GitRocketFilter
     /// </summary>
     public struct SimpleEntry
     {
-        private readonly TreeEntryWrapper entryWrapper;
         private readonly TreeEntry entry;
         private readonly GitObject target;
         private readonly GitLink link;
@@ -21,11 +20,11 @@ namespace GitRocketFilter
         /// <summary>
         /// Initializes a new instance of the <see cref="SimpleEntry" /> struct.
         /// </summary>
-        /// <param name="entryWrapper">The entry wrapper.</param>
-        internal SimpleEntry(TreeEntryWrapper entryWrapper) : this()
+        /// <param name="entry">The tree entry.</param>
+        internal SimpleEntry(TreeEntry entry)
+            : this()
         {
-            this.entryWrapper = entryWrapper;
-            this.entry = entryWrapper.TreeEntry;
+            this.entry = entry;
             target = entry.Target;
             this.blob = entry.Target as Blob;
             this.link = entry.Target as GitLink;
@@ -109,7 +108,7 @@ namespace GitRocketFilter
             {
                 if (value == null)
                 {
-                    throw new ArgumentNullException(string.Format("Cannot set a null buffer to entry [{0}]", entryWrapper));
+                    throw new ArgumentNullException(string.Format("Cannot set a null buffer to entry [{0}]", entry.Path));
                 }
 
                 if (data != originalData)
@@ -149,5 +148,15 @@ namespace GitRocketFilter
         /// </summary>
         /// <value><c>true</c> if this commit should be discarded; otherwise, <c>false</c>.</value>
         public bool Discard { get; set; }
+
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="SimpleEntry"/> to <see cref="TreeEntry"/>.
+        /// </summary>
+        /// <param name="entry">The entry.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator TreeEntry(SimpleEntry entry)
+        {
+            return entry.entry;
+        }
     }
 }
