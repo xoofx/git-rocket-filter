@@ -188,14 +188,6 @@ namespace GitRocketFilter
         public string MessageShort
         {
             get { return messageShortValue; }
-            set
-            {
-                if (messageShortValue != value)
-                {
-                    messageShortValue = value;
-                    Changed = true;
-                }
-            }
         }
 
         /// <summary>
@@ -271,6 +263,16 @@ namespace GitRocketFilter
         public override string ToString()
         {
             return string.Format("id: {0}, name: {1}, email: {2}, date: {3}, messageShort: {4}", Id, AuthorName, AuthorEmail, AuthorDate, MessageShort);
+        }
+
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="SimpleCommit"/> to <see cref="Commit"/>.
+        /// </summary>
+        /// <param name="commit">The commit.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Commit(SimpleCommit commit)
+        {
+            return commit != null ? commit.GitCommit : null;
         }
     }
 }
