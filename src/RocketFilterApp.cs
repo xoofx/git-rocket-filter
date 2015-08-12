@@ -80,10 +80,10 @@ namespace GitRocketFilter
         {
             clock = Stopwatch.StartNew();
 
-            // Validate paramters
+            // Validate parameters
             ValidateParameters();
 
-            // Prepare filterings
+            // Prepare filtering
             PrepareFiltering();
 
             // Compile any scripts (from commit or tree filtering)
@@ -688,18 +688,8 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             // ------------------------------------
             // commit-filtering
             // ------------------------------------
-            if (commitFilteringCallback != null)
-            {
-                // Filter this commit
-                commitFilteringCallback(repo, commit);
-
-                if (commit.Discard)
-                {
-                    // Store that this commit was discarded (used for reparenting commits)
-                    commitsDiscarded.Add(commit.GitCommit);
-                    return;
-                }
-            }
+            if (PerformCommitFiltering(commit)) 
+                return;
 
             // Map parents of previous commit to new parents
             // Check if at least a parent has the same tree, if yes, we don't need to create a new commit
@@ -709,44 +699,10 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             // ------------------------------------
             // tree-filtering
             // ------------------------------------
-            if (hasTreeFiltering)
-            {
-                // clear the cache of entries to keep and the tasks to run
-                entriesToKeep.Clear();
+            if (PerformTreeFiltering(commit, out newTree)) 
+                return;
 
-                // Process white list
-                BuildWhiteList(commit, commit.Tree);
-                ProcessPendingTasks();
-
-                // Process black list
-                if (blackListPathPatterns.Count > 0)
-                {
-                    BuildBlackList(commit);
-                    ProcessPendingTasks();
-                }
-
-                // If the commit was discarded by a tree-filtering, we need to skip it also here
-                if (commit.Discard)
-                {
-                    // Store that this commit was discarded (used for reparenting commits)
-                    commitsDiscarded.Add(commit.GitCommit);
-                    return;
-                }
-
-                // Rebuild a new tree based on the list of entries to keep
-                var treeDef = new TreeDefinition();
-                foreach (var entry in entriesToKeep)
-                {
-                    treeDef.Add(entry.Path, entry);
-                }
-                newTree = repo.ObjectDatabase.CreateTree(treeDef);
-            }
-            else
-            {
-                // If we don't have any tree filtering, just use the original tree
-                newTree = commit.Tree;
-            }
-
+            // Process parents
             var newParents = new List<Commit>();
             bool hasOriginalParents = false;
             bool treePruned = false;
@@ -801,6 +757,66 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
 
             // Store the last commit
             lastCommit = newCommit;
+        }
+
+        private bool PerformTreeFiltering(SimpleCommit commit, out Tree newTree)
+        {
+            newTree = null;
+            if (hasTreeFiltering)
+            {
+                // clear the cache of entries to keep and the tasks to run
+                entriesToKeep.Clear();
+
+                // Process white list
+                BuildWhiteList(commit, commit.Tree);
+                ProcessPendingTasks();
+
+                // Process black list
+                if (blackListPathPatterns.Count > 0)
+                {
+                    BuildBlackList(commit);
+                    ProcessPendingTasks();
+                }
+
+                // If the commit was discarded by a tree-filtering, we need to skip it also here
+                if (commit.Discard)
+                {
+                    // Store that this commit was discarded (used for reparenting commits)
+                    commitsDiscarded.Add(commit.GitCommit);
+                    return true;
+                }
+
+                // Rebuild a new tree based on the list of entries to keep
+                var treeDef = new TreeDefinition();
+                foreach (var entry in entriesToKeep)
+                {
+                    treeDef.Add(entry.Path, entry);
+                }
+                newTree = repo.ObjectDatabase.CreateTree(treeDef);
+            }
+            else
+            {
+                // If we don't have any tree filtering, just use the original tree
+                newTree = commit.Tree;
+            }
+            return false;
+        }
+
+        private bool PerformCommitFiltering(SimpleCommit commit)
+        {
+            if (commitFilteringCallback != null)
+            {
+                // Filter this commit
+                commitFilteringCallback(repo, commit);
+
+                if (commit.Discard)
+                {
+                    // Store that this commit was discarded (used for reparenting commits)
+                    commitsDiscarded.Add(commit.GitCommit);
+                    return true;
+                }
+            }
+            return false;
         }
 
         private Commit FindRewrittenParent(Commit commit)
@@ -871,7 +887,7 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             public readonly Ignore Ignore;
         }
 
-        struct PathMatch
+        private struct PathMatch
         {
             public PathMatch(bool isIgnored, PathPattern pattern)
             {
