@@ -145,5 +145,43 @@ namespace GitRocketFilter.Tests
             // Cleanup the test only if we succeed
             test.Dispose();
         }
+
+
+        /// <summary>
+        /// Discard all commits that don't contain the 'test.bin' text in their message. Rewrite author and committer of the commit left.
+        /// </summary>
+        [Fact]
+        public void DiscardAllCommitMessageExceptOne()
+        {
+            var test = InitializeTest();
+
+            // Test directly the main program as we want to test also command line parameters
+            Program.Main("--commit-filter",
+                @"commit.Discard = !commit.Message.Contains(""test.bin""); if (!commit.Discard) { commit.AuthorName=""NewAuthor""; commit.AuthorEmail = ""test@gmail.com""; commit.CommitterName =""NewCommitter""; commit.CommitterEmail = ""test2@gmail.com""; }",
+                "--repo-dir", test.Path,
+                "--branch", NewBranch
+                );
+
+            var repo = test.Repo;
+            var headNewMaster = AssertBranchRef(repo);
+
+            var newCommits = GetCommits(repo, headNewMaster);
+
+            // We should have only 1 commit
+            Assert.Equal(1, newCommits.Count);
+
+            var commitLeft = newCommits[0];
+            Assert.Contains("test.bin", commitLeft.Message);
+
+            // Check new field
+            Assert.Equal("NewAuthor", commitLeft.Author.Name);
+            Assert.Equal("test@gmail.com", commitLeft.Author.Email);
+            Assert.Equal("NewCommitter", commitLeft.Committer.Name);
+            Assert.Equal("test2@gmail.com", commitLeft.Committer.Email);
+
+            // Cleanup the test only if we succeed
+            test.Dispose();
+        }
+
     }
 }

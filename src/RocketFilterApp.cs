@@ -747,6 +747,12 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                 // Find a non discarded parent
                 var remapParent = FindRewrittenParent(parent.GitCommit);
 
+                // If remap parent is null, we can skip it
+                if (remapParent == null)
+                {
+                    continue;
+                }
+
                 // If parent is same, then it is an original parent that can be detached by DetachFirstCommits
                 hasOriginalParents = parent.GitCommit == remapParent;
 
@@ -807,6 +813,9 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                             return newParent;
                         }
                     }
+
+                    // For a initial commit that is already discarded, we don't have any parent commit
+                    return null;
                 }
             }
 
