@@ -7,9 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Policy;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 using Microsoft.CodeAnalysis;
@@ -27,7 +25,7 @@ namespace GitRocketFilter
 
         private readonly Dictionary<Commit, SimpleCommit> simpleCommits = new Dictionary<Commit, SimpleCommit>(); 
 
-        private readonly Dictionary<ObjectId, Commit> commitMap;
+        private readonly Dictionary<string, Commit> commitMap;
         private Repository repo;
         private Commit lastCommit;
 
@@ -51,7 +49,7 @@ namespace GitRocketFilter
 
         public RocketFilterApp()
         {
-            commitMap = new Dictionary<ObjectId, Commit>();
+            commitMap = new Dictionary<string, Commit>();
             tempRocketPath = Path.Combine(Path.GetTempPath(), ".gitRocketFilter");
             Repository.Init(tempRocketPath, true);
         }
@@ -101,7 +99,7 @@ namespace GitRocketFilter
         internal SimpleCommit GetMapCommit(SimpleCommit commit)
         {
             Commit rewritten;
-            if (commitMap.TryGetValue(commit.Id, out rewritten))
+            if (commitMap.TryGetValue(commit.Id.Sha, out rewritten))
             {
                 return GetSimpleCommit(rewritten);
             }
@@ -544,14 +542,13 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                     var entry = entryIt;
                     if (entry.TargetType == TreeEntryTargetType.Tree)
                     {
-                        var subTree = (Tree) entry.Target;
+                        var subTree = (Tree)entry.Target;
                         BuildWhiteList(commit, subTree);
                     }
                     else
                     {
                         EvaluateEntry(commit, entry, whiteListPathPatterns, true);
                     }
-
                 }
             });
 
@@ -569,83 +566,94 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                 return;
             }
 
-            var checkTask = Task.Factory.StartNew(() =>
+            PathMatch match;
+            var path = entry.Path;
+            if (TryMatch(path, globalPattern, out match))
             {
-                var path = entry.Path;
-                var match = Match(path, globalPattern);
-
                 // If path is ignored we can update the entries to keep
                 if (match.IsIgnored)
                 {
-
-                    // If callback return false, then we don't update entries to keep or delete
-                    var pattern = match.Pattern;
-                    var callback = pattern.Callback;
-                    if (callback != null)
-                    {
-                        var simpleEntry = new SimpleEntry(entry);
-
-                        // Calls the script
-                        callback(repo, pattern.Path, commit, ref simpleEntry);
-
-                        // Skip if this entry was discarded
-                        if (simpleEntry.Discard || commit.Discard)
-                        {
-                            return;
-                        }
-                    }
-
-                    // We can update entries to keep
-                    lock (entriesToKeep)
-                    {
-                        if (keepOnIgnore)
-                        {
-                            entriesToKeep.Add(entry);
-                        }
-                        else
-                        {
-                            entriesToKeep.Remove(entry);
-                        }
-                    }
+                    DirectMatch(commit, entry, keepOnIgnore, ref match);
                 }
-            });
-
-            lock (pendingTasks)
+            }
+            else
             {
-                pendingTasks.Add(checkTask);
+                var checkTask = Task.Factory.StartNew(() =>
+                {
+                    Match(path, globalPattern, ref match);
+                    // If path is ignored we can update the entries to keep
+                    if (match.IsIgnored)
+                    {
+                        DirectMatch(commit, entry, keepOnIgnore, ref match);
+                    }
+                });
+
+                lock (pendingTasks)
+                {
+                    pendingTasks.Add(checkTask);
+                }
             }
         }
 
-        private static PathMatch Match(string path, PathPatterns pathPatterns)
+        private void DirectMatch(SimpleCommit commit, TreeEntry entry, bool keepOnIgnore, ref PathMatch match)
         {
-            PathMatch match;
-            var ignoreCache = pathPatterns.IgnoreCache;
-            bool matchFound;
+            // If callback return false, then we don't update entries to keep or delete
+            var pattern = match.Pattern;
+            var callback = pattern.Callback;
+            if (callback != null)
+            {
+                var simpleEntry = new SimpleEntry(entry);
 
+                // Calls the script
+                callback(repo, pattern.Path, commit, ref simpleEntry);
+
+                // Skip if this entry was discarded
+                if (simpleEntry.Discard || commit.Discard)
+                {
+                    return;
+                }
+            }
+
+            // We can update entries to keep
+            lock (entriesToKeep)
+            {
+                if (keepOnIgnore)
+                {
+                    entriesToKeep.Add(entry);
+                }
+                else
+                {
+                    entriesToKeep.Remove(entry);
+                }
+            }
+        }
+
+        private static bool TryMatch(string path, PathPatterns pathPatterns, out PathMatch match)
+        {
+            var ignoreCache = pathPatterns.IgnoreCache;
             // Try first to get a previously match from the cache
             lock (ignoreCache)
             {
-                matchFound = ignoreCache.TryGetValue(path, out match);
+                return ignoreCache.TryGetValue(path, out match);
             }
+        }
 
-            // Otherwise, loop through all patterns to find a match
-            if (!matchFound)
+        private static void Match(string path, PathPatterns pathPatterns, ref PathMatch match)
+        {
+            var ignoreCache = pathPatterns.IgnoreCache;
+
+            foreach (var pathPattern in pathPatterns)
             {
-                foreach (var pathPattern in pathPatterns)
+                if (pathPattern.Ignore.IsPathIgnored(path))
                 {
-                    if (pathPattern.Ignore.IsPathIgnored(path))
-                    {
-                        match = new PathMatch(true, pathPattern);
-                        break;
-                    }
-                }
-                lock (ignoreCache)
-                {
-                    ignoreCache.Add(path, match);
+                    match = new PathMatch(true, pathPattern);
+                    break;
                 }
             }
-
-            return match;
+            lock (ignoreCache)
+            {
+                ignoreCache.Add(path, match);
+            }
         }
 
         private void BuildBlackList(SimpleCommit commit)
@@ -789,7 +797,7 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             }
 
             // Store the remapping between the old commit and the new commit
-            commitMap.Add(commit.Id, newCommit);
+            commitMap.Add(commit.Sha, newCommit);
 
             // Store the last commit
             lastCommit = newCommit;
@@ -798,7 +806,7 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
         private Commit FindRewrittenParent(Commit commit)
         {
             Commit newCommit;
-            if (!commitMap.TryGetValue(commit.Id, out newCommit))
+            if (!commitMap.TryGetValue(commit.Sha, out newCommit))
             {
                 newCommit = commit;
 
