@@ -56,6 +56,15 @@ namespace GitRocketFilter
         }
 
         /// <summary>
+        /// Gets the sha identifier.
+        /// </summary>
+        /// <value>The sha.</value>
+        public string Sha
+        {
+            get { return commit.Sha; }
+        }
+
+        /// <summary>
         /// Gets the encoding of the message.
         /// </summary>
         /// <value>The encoding of the message.</value>
