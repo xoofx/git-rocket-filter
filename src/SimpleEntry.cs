@@ -2,6 +2,7 @@
 // Licensed under the BSD license. See LICENSE file in the project root for full license information.
 using System;
 using System.IO;
+using System.Text;
 using LibGit2Sharp;
 
 namespace GitRocketFilter
@@ -11,21 +12,30 @@ namespace GitRocketFilter
     /// </summary>
     public struct SimpleEntry
     {
+        private readonly Repository repo;
         private readonly TreeEntry entry;
         private readonly GitObject target;
         private readonly GitLink link;
         private readonly Blob blob;
-        private byte[] originalData;
         private byte[] data;
-        internal bool changed;
+        internal EntryValue newEntryValue;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SimpleEntry" /> struct.
         /// </summary>
+        /// <param name="repo">The repo.</param>
         /// <param name="entry">The tree entry.</param>
-        internal SimpleEntry(TreeEntry entry)
+        /// <exception cref="System.ArgumentNullException">
+        /// repo
+        /// or
+        /// entry
+        /// </exception>
+        internal SimpleEntry(Repository repo, TreeEntry entry)
             : this()
         {
+            if (repo == null) throw new ArgumentNullException("repo");
+            if (entry == null) throw new ArgumentNullException("entry");
+            this.repo = repo;
             this.entry = entry;
             target = entry.Target;
             this.blob = entry.Target as Blob;
@@ -74,75 +84,63 @@ namespace GitRocketFilter
 
         public long Size
         {
-            get
-            {
-                if (data != null)
-                {
-                    return data.Length;
-                }
-
-                return blob != null ? blob.Size : 0;
-            }
+            get { return blob != null ? blob.Size : 0; }
         }
 
-        public byte[] Data
+        public byte[] GetBlobAsBytes()
         {
-            get
+            if (blob == null)
             {
-                if (data != null)
-                {
-                    return data;
-                }
-
-                if (blob != null)
-                {
-                    var stream = blob.GetContentStream();
-                    var memoryStream = new MemoryStream();
-                    stream.CopyTo(memoryStream);
-                    memoryStream.Position = 0;
-                    originalData = memoryStream.ToArray();
-                    data = originalData;
-                }
-
-                return data;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(string.Format("Cannot set a null buffer to entry [{0}]", entry.Path));
-                }
-
-                if (data != originalData)
-                {
-                    data = value;
-                    changed = true;
-                }
-            }
-        }
-
-        public Stream DataAsStream
-        {
-            get
-            {
-                if (blob != null)
-                {
-                    return blob.GetContentStream();
-                }
                 return null;
             }
+
+            var stream = blob.GetContentStream();
+            var memoryStream = new MemoryStream();
+            stream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+            return memoryStream.ToArray();
         }
 
-        public string DataAsText
+        public Stream GetBlobAsStream()
         {
-            get
+            if (blob != null)
             {
-                if (blob != null)
-                {
-                    return blob.GetContentText();
-                }
-                return null;
+                return blob.GetContentStream();
             }
+            return null;
+        }
+
+        public string GetBlobAsText()
+        {
+            if (blob != null)
+            {
+                return blob.GetContentText();
+            }
+            return null;
+        }
+
+        public void SetBlob(Stream content, Mode mode = Mode.NonExecutableFile)
+        {
+            if (content == null) throw new ArgumentNullException("content");
+            newEntryValue = new EntryValue(repo.ObjectDatabase.CreateBlob(content), mode);
+        }
+
+        public void SetBlob(byte[] content, Mode mode = Mode.NonExecutableFile)
+        {
+            if (content == null) throw new ArgumentNullException("content");
+            newEntryValue = new EntryValue(repo.ObjectDatabase.CreateBlob(new MemoryStream(content)), mode);
+        }
+
+        public void SetBlob(string content, Mode mode = Mode.NonExecutableFile)
+        {
+            SetBlob(content, Encoding.UTF8, mode);
+        }
+
+        public void SetBlob(string content, Encoding encoding, Mode mode = Mode.NonExecutableFile)
+        {
+            if (content == null) throw new ArgumentNullException("content");
+            newEntryValue = new EntryValue(
+                repo.ObjectDatabase.CreateBlob(new MemoryStream(encoding.GetBytes(content))), mode);
         }
 
         /// <summary>
@@ -159,6 +157,19 @@ namespace GitRocketFilter
         public static implicit operator TreeEntry(SimpleEntry entry)
         {
             return entry.entry;
+        }
+
+        internal struct EntryValue
+        {
+            public EntryValue(Blob blob, Mode mode)
+            {
+                Blob = blob;
+                Mode = mode;
+            }
+
+            public readonly Blob Blob;
+
+            public readonly Mode Mode;
         }
     }
 }

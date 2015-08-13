@@ -29,7 +29,7 @@ namespace GitRocketFilter
         private Repository repo;
         private Commit lastCommit;
 
-        private readonly HashSet<TreeEntry> entriesToKeep = new HashSet<TreeEntry>();
+        private readonly Dictionary<TreeEntry, SimpleEntry.EntryValue> entriesToKeep = new Dictionary<TreeEntry, SimpleEntry.EntryValue>();
 
         private readonly List<Task> pendingTasks = new List<Task>();
 
@@ -598,11 +598,12 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
         private void DirectMatch(SimpleCommit commit, TreeEntry entry, bool keepOnIgnore, ref PathMatch match)
         {
             // If callback return false, then we don't update entries to keep or delete
+            SimpleEntry simpleEntry;
             var pattern = match.Pattern;
             var callback = pattern.Callback;
             if (callback != null)
             {
-                var simpleEntry = new SimpleEntry(entry);
+                simpleEntry = new SimpleEntry(repo, entry);
 
                 // Calls the script
                 callback(repo, pattern.Path, commit, ref simpleEntry);
@@ -613,13 +614,17 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                     return;
                 }
             }
+            else
+            {
+                simpleEntry = default(SimpleEntry);
+            }
 
             // We can update entries to keep
             lock (entriesToKeep)
             {
                 if (keepOnIgnore)
                 {
-                    entriesToKeep.Add(entry);
+                    entriesToKeep.Add(entry, simpleEntry.newEntryValue);
                 }
                 else
                 {
@@ -661,7 +666,7 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             var entries = entriesToKeep.ToList();
             foreach (var entry in entries)
             {
-                EvaluateEntry(commit, entry, blackListPathPatterns, false);
+                EvaluateEntry(commit, entry.Key, blackListPathPatterns, false);
             }
         }
 
@@ -788,9 +793,19 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
 
                 // Rebuild a new tree based on the list of entries to keep
                 var treeDef = new TreeDefinition();
-                foreach (var entry in entriesToKeep)
+                foreach (var entryIt in entriesToKeep)
                 {
-                    treeDef.Add(entry.Path, entry);
+                    var entry = entryIt.Key;
+                    var entryValue = entryIt.Value;
+                    if (entryValue.Blob != null)
+                    {
+                        treeDef.Add(entry.Path, entryValue.Blob, entryValue.Mode);
+
+                    }
+                    else
+                    {
+                        treeDef.Add(entry.Path, entry);
+                    }
                 }
                 newTree = repo.ObjectDatabase.CreateTree(treeDef);
             }
