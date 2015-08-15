@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 namespace GitRocketFilter.Tests
 {
     /// <summary>
-    /// Tests for tree-filtering with scripts: --keep, --keep-from-file, --remove, --remove-from-file options.
+    /// Tests for tree-filtering with scripts: --keep, --keep-script, --remove, --remove-script options.
     /// </summary>
     public class TestTreeFilteringScripts : TestRepoBase
     {

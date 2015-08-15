@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 namespace GitRocketFilter.Tests
 {
     /// <summary>
-    /// Tests for tree-filtering: --keep, --keep-from-file, --remove, --remove-from-file options.
+    /// Tests for tree-filtering: --keep, --keep-script, --remove, --remove-script options.
     /// </summary>
     public class TestTreeFiltering : TestRepoBase
     {
@@ -76,14 +76,14 @@ namespace GitRocketFilter.Tests
         }
 
         /// <summary>
-        /// Keeps /Test1 directory and a.txt file (version using --keep-from-file)
+        /// Keeps /Test1 directory and a.txt file (version using --keep-script)
         /// </summary>
         [Fact]
         public void KeepAndKeepFromFile()
         {
             var test = InitializeTest();
 
-            Program.Main("--keep-from-file", "KeepPatternFile1.txt",
+            Program.Main("--keep-script", "KeepPatternFile1.txt",
                 "--keep", "a.txt",
                 "--repo-dir", test.Path,
                 "--branch", NewBranch,
@@ -179,7 +179,7 @@ namespace GitRocketFilter.Tests
         }
 
         /// <summary>
-        /// Keeps directory /Test[12], remove all files except a[12].txt using --remove-from-file
+        /// Keeps directory /Test[12], remove all files except a[12].txt using --remove-script
         /// </summary>
         [Fact]
         public void KeepTwoDirectoriesAndRemoveFromFileExcept()
@@ -187,7 +187,7 @@ namespace GitRocketFilter.Tests
             var test = InitializeTest();
 
             Program.Main("--keep", "/Test[12]",
-                "--remove-from-file", "RemovePatternFile1.txt",
+                "--remove-script", "RemovePatternFile1.txt",
                 "--repo-dir", test.Path,
                 "--branch", NewBranch,
                 @"HEAD");
