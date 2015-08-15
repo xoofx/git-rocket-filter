@@ -619,12 +619,14 @@ namespace GitRocketFilter
             if (callback != null)
             {
                 simpleEntry = new SimpleEntry(repo, entry);
+                simpleEntry.Discard = !keepOnIgnore;
 
                 // Calls the script
                 callback(repo, pattern.Path, commit, ref simpleEntry);
 
+                // Skip if this commit is discarded by the tree filtering
                 // Skip if this entry was discarded
-                if (simpleEntry.Discard || commit.Discard)
+                if (commit.Discard || (simpleEntry.Discard == keepOnIgnore))
                 {
                     return;
                 }
