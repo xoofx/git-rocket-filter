@@ -25,10 +25,10 @@ namespace GitRocketFilter.Tests
         {
             var test = InitializeTest();
 
-            Program.Main("--keep", "* => entry.Discard = entry.IsBinary || entry.Size > 10; ",
+            Assert.Equal(0, Program.Main("--keep", "* => entry.Discard = entry.IsBinary || entry.Size > 10; ",
                 "--repo-dir", test.Path,
                 "--branch", NewBranch,
-                @"HEAD");
+                @"HEAD"));
 
             CheckKeepOnlyNonBinaryFilesLessThan10Bytes(test);
 
@@ -44,14 +44,45 @@ namespace GitRocketFilter.Tests
         {
             var test = InitializeTest();
 
-            Program.Main("--keep", @"* {% 
+            Assert.Equal(0, Program.Main("--keep", @"* {% 
 entry.Discard = entry.IsBinary || entry.Size > 10; 
 %}",
                 "--repo-dir", test.Path,
                 "--branch", NewBranch,
-                @"HEAD");
+                @"HEAD"));
 
             CheckKeepOnlyNonBinaryFilesLessThan10Bytes(test);
+
+            // Cleanup the test only if we succeed
+            test.Dispose();
+        }
+
+        /// <summary>
+        /// Make sure that order is satisfied when using scripts (so first pattern is matched and stops).
+        /// </summary>
+        [Fact]
+        public void PatternsScriptsOrder()
+        {
+            var test = InitializeTest();
+
+            Assert.Equal(0, Program.Main("--keep", "a.txt => entry.Discard = false;",
+                "--keep", "* => entry.Discard = true;",
+                "--repo-dir", test.Path,
+                "--branch", NewBranch,
+                @"HEAD"));
+
+            var repo = test.Repo;
+            var headNewMaster = AssertBranchRef(repo);
+
+            var newCommits = GetCommits(repo, headNewMaster);
+
+            Assert.Equal(1, newCommits.Count);
+
+            var commit = newCommits[0];
+            {
+                Assert.Equal(1, commit.Tree.Count);
+                Assert.NotNull(commit.Tree["a.txt"]);
+            }
 
             // Cleanup the test only if we succeed
             test.Dispose();
@@ -88,10 +119,10 @@ entry.Discard = entry.IsBinary || entry.Size > 10;
         {
             var test = InitializeTest();
 
-            Program.Main("--remove", "* => entry.Discard = entry.IsBinary && entry.Size > 10; ",
+            Assert.Equal(0, Program.Main("--remove", "* => entry.Discard = entry.IsBinary && entry.Size > 10; ",
                 "--repo-dir", test.Path,
                 "--branch", NewBranch,
-                @"HEAD");
+                @"HEAD"));
 
             var repo = test.Repo;
             var headNewMaster = AssertBranchRef(repo);
