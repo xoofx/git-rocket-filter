@@ -68,7 +68,7 @@ Keeps only the directory `MyDirectory` except all `*.txt` files and store the re
 
     git-rocket-filter --branch TestBranch --delete '* => entry.Discard = entry.Size > 1024*1024;''
 
-Keeps only the directory `MyDirectory` except all `*.txt` files and store the results of the rewrite to the new branch `TestBranch` 
+Removes all files bigger than 1Mo and store results to the new branch `TestBranch` 
 
 > **Note For Windows Users**
 > The command above are valid for a bash shell on an Unix machine. On Windows, depending if you are running a command in a DOS/batch or a msysgit bash, some escape characters may be required in the command line to pass correctly the options (This is especially important if you are passing a C# script code in the command line):
