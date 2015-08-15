@@ -1,4 +1,4 @@
-﻿// Copyright (c) Alexandre MUTEL. All rights reserved.
+﻿// Copyright (c) Alexandre Mutel. All rights reserved.
 // Licensed under the BSD license. See LICENSE file in the project root for full license information.
 using System;
 using System.Collections.Generic;
@@ -112,6 +112,25 @@ namespace GitRocketFilter.Tests
                 {
                     string temppath = Path.Combine(destDirName, subdir.Name);
                     DirectoryCopy(subdir.FullName, temppath, copySubDirs);
+                }
+            }
+        }
+
+        protected static IEnumerable<TreeEntry> GetEntries(Tree tree)
+        {
+            foreach (var entry in tree)
+            {
+                if (entry.TargetType == TreeEntryTargetType.Tree)
+                {
+                    var subTree = (Tree)entry.Target;
+                    foreach (var subEntry in GetEntries(subTree))
+                    {
+                        yield return subEntry;
+                    }
+                }
+                else if (entry.TargetType == TreeEntryTargetType.Blob)
+                {
+                    yield return entry;
                 }
             }
         }

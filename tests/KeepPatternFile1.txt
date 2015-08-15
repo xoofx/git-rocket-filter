@@ -1,0 +1,5 @@
+﻿# This is a keep pattern file
+# It is using the same syntax as .gitignore (with additional syntax to attach a script per pattern)
+
+# Keeps this directory
+/Test1

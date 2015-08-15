@@ -1,10 +1,13 @@
-﻿// Copyright (c) Alexandre MUTEL. All rights reserved.
+﻿// Copyright (c) Alexandre Mutel. All rights reserved.
 // Licensed under the BSD license. See LICENSE file in the project root for full license information.
 using System.Linq;
 using Xunit;
 
 namespace GitRocketFilter.Tests
 {
+    /// <summary>
+    /// Tests for commit filtering: --commit-filter option
+    /// </summary>
     public class TestCommitFiltering : TestRepoBase
     {
         /// <summary>
@@ -182,6 +185,5 @@ namespace GitRocketFilter.Tests
             // Cleanup the test only if we succeed
             test.Dispose();
         }
-
     }
 }

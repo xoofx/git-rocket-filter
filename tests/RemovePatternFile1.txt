@@ -1,0 +1,7 @@
+﻿# This is a remove pattern file
+# It is using the same syntax as .gitignore (with additional syntax to attach a script per pattern)
+
+# Keeps all files
+*
+# Except
+!a[12].txt
