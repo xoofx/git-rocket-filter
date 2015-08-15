@@ -52,6 +52,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestTreeFilteringScripts.cs" />
     <Compile Include="TestTreeFiltering.cs" />
     <Compile Include="TestCommitFiltering.cs" />
     <Compile Include="TestRepoBase.cs" />
