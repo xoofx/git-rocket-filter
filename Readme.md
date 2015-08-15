@@ -170,6 +170,10 @@ Example:
 - `--keep '/My/Sub/**/MyFolder'`: Keeps all folders `MyFolder`recursively from the folder `/My/Sub`
 - `--keep '* => entry.Discard = entry.Size > 10000;'`: Keeps only files that are less than 10,000 bytes
 
+> Note:
+> - For **patterns with scripts**, they are resolved before patterns with no scripts, in the order they are passed to the command line (or in the order of lines from a script file). 
+> - For **patterns with no scripts**, the rules are squashed in the same way `.gitignore` is squashing them, meaning that order is not relevant in this case. 
+
 ___
 #### `--keep-script <script_file>`
 
@@ -192,13 +196,15 @@ Using scripts in the file is also straightfoward (no need to care about escape c
 **Single Line scripts**
 
 ```
+# Except files that are stored in this specific location
+# Note in this case we put this rule before the wildcard * rules below
+# to make sure that this pattern will be called first
+/my/files/** => entry.Discard = false;  
+
 # Keep all files that are smaller than 1024x1024 bytes. Note the one-line script using 
 # the separator `=>` 
 
 *  => entry.Discard = entry.Size > 1024*1024;
-
-# Except files that are stored in this specific location
-/my/files/** => entry.Discard = false;  
 ```
 
 **Multi Line scripts**
