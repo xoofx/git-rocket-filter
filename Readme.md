@@ -19,7 +19,7 @@ The purpose of `git-rocket-filter` is similar to the command [`git-filter-branch
 - Fast rewriting of commits and trees (by an order of `x10` to `x100`).
 - Built-in support for both **white-listing** with `--keep` (keeps files or directories) and **black-listing** with `--remove` options.
 - Use of `.gitignore` like pattern for tree-filtering 
-- Powerful, fast and easy C# Scripting for both commit filtering and tree filtering
+- Fast and easy C# Scripting for both commit filtering and tree filtering
 - Support for scripting in tree-filtering per file/directory pattern
 
 Tested on Windows and Linux (with Mono installed).
