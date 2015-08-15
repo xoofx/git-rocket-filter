@@ -21,6 +21,7 @@ The purpose of `git-rocket-filter` is similar to the command [`git-filter-branch
 - Use of `.gitignore` like pattern for tree-filtering 
 - Fast and easy C# Scripting for both commit filtering and tree filtering
 - Support for scripting in tree-filtering per file/directory pattern
+- Automatically prune empty/unchanged commit, including merge commits
 
 Tested on Windows and Linux (with Mono installed).
 
