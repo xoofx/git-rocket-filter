@@ -757,21 +757,24 @@ namespace GitRocketFilter
                         var pathPattern = new PathPattern(tempRocketPath, pathPatternText, textScript);
                         pathPatterns.Add(pathPattern);
                     }
-
-                    scriptIndex = line.IndexOf("{%", StringComparison.InvariantCultureIgnoreCase);
-                    if (scriptIndex >= 0)
-                    {
-                        isInMultiLineScript = true;
-                        multiLineScript.Length = 0;
-                        currentMultilinePath = line.Substring(0, scriptIndex).TrimEnd();
-                        var textScript = line.Substring(scriptIndex + 2).TrimEnd();
-                        multiLineScript.AppendLine(textScript);
-                    }
                     else
                     {
-                        // If this is a normal path pattern line
-                        pathPatternsNoScript.Add(line.TrimEnd());
+                        scriptIndex = line.IndexOf("{%", StringComparison.InvariantCultureIgnoreCase);
+                        if (scriptIndex >= 0)
+                        {
+                            isInMultiLineScript = true;
+                            multiLineScript.Length = 0;
+                            currentMultilinePath = line.Substring(0, scriptIndex).TrimEnd();
+                            var textScript = line.Substring(scriptIndex + 2).TrimEnd();
+                            multiLineScript.AppendLine(textScript);
+                        }
+                        else
+                        {
+                            // If this is a normal path pattern line
+                            pathPatternsNoScript.Add(line.TrimEnd());
+                        }
                     }
+
                 }
             }
 
