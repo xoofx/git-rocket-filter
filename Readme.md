@@ -28,7 +28,7 @@ The purpose of `git-rocket-filter` is similar to the command `git-filter-branch`
 
 ## Download
 
-You can get the latest stable binaries from the <a href="https://github.com/xoofx/GitRocketFilter/releases" class="btn btn-primary">Download</a> page.
+You can get the latest stable binaries from the <a href="https://github.com/xoofx/GitRocketFilter/releases" class="btn btn-primary">Release</a> page.
 
 ## Examples
 
@@ -251,6 +251,15 @@ Prints some helps about command in the console.
 
 Prints some diagnostic messages about the patterns found and the final generated C# code. 
   
+## Implementation
+
+git-rocket-filter is mostly a combined wrapper around LibGit2Sharp and Roslyn.
+
+In order to increase the performance of rewriting commits, git-rocket-filter is built upon:
+- .NET Parallel tasks and threads to dispatch the work on multiple cores. The dispatch is done per tree visited and if there is a need to to perform gitignore pattern matching.
+- Efficiently caching .gitignore pattern entries from LibGit2Sharp so that we avoid to callback libgit2 to perform pattern matching (which is cpu consuming in libgit2)
+
+
 ## License
 This software is released under the [BSD-Clause 2 license](http://opensource.org/licenses/BSD-2-Clause). 
 
