@@ -1,4 +1,4 @@
-// Copyright (c) Alexandre MUTEL. All rights reserved.
+// Copyright (c) Alexandre Mutel. All rights reserved.
 // Licensed under the BSD license. See LICENSE file in the project root for full license information.
 using System;
 using System.Collections.Generic;
@@ -13,22 +13,6 @@ namespace GitRocketFilter
     {
         private readonly RocketFilterApp rocket;
         private readonly Commit commit;
-
-        private string authorNameValue;
-        private string authorEmailValue;
-        private DateTimeOffset authorDateValue;
-
-        private string committerNameValue;
-        private string committerEmailValue;
-        private DateTimeOffset committerDateValue;
-
-        private string messageValue;
-        private string messageShortValue;
-
-        private Tree tree;
-
-        // True if this commit has been changed
-        internal bool Changed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SimpleCommit" /> class.
@@ -77,120 +61,43 @@ namespace GitRocketFilter
         /// Gets or sets the author name.
         /// </summary>
         /// <value>The author name.</value>
-        public string AuthorName
-        {
-            get { return authorNameValue; }
-            set
-            {
-                if (authorNameValue != value)
-                {
-                    authorNameValue = value;
-                    Changed = true;
-                }
-            }
-        }
+        public string AuthorName { get; set; }
 
         /// <summary>
         /// Gets or sets the email.
         /// </summary>
         /// <value>The email.</value>
-        public string AuthorEmail
-        {
-            get { return authorEmailValue; }
-            set
-            {
-                if (authorEmailValue != value)
-                {
-                    authorEmailValue = value;
-                    Changed = true;
-                }
-            }
-        }
+        public string AuthorEmail { get; set; }
 
         /// <summary>
         /// Gets or sets the date.
         /// </summary>
         /// <value>The date.</value>
-        public DateTimeOffset AuthorDate
-        {
-            get { return authorDateValue; }
-            set
-            {
-                if (!value.Equals(authorDateValue))
-                {
-                    authorDateValue = value;
-                    Changed = true;
-                }
-            }
-        }
+        public DateTimeOffset AuthorDate { get; set; }
 
         /// <summary>
         /// Gets or sets the committer name.
         /// </summary>
         /// <value>The author name.</value>
-        public string CommitterName
-        {
-            get { return committerNameValue; }
-            set
-            {
-                if (committerNameValue != value)
-                {
-                    committerNameValue = value;
-                    Changed = true;
-                }
-            }
-        }
+        public string CommitterName { get; set; }
 
         /// <summary>
         /// Gets or sets the committer email.
         /// </summary>
         /// <value>The email.</value>
-        public string CommitterEmail
-        {
-            get { return committerEmailValue; }
-            set
-            {
-                if (committerEmailValue != value)
-                {
-                    committerEmailValue = value;
-                    Changed = true;
-                }
-            }
-        }
+        public string CommitterEmail { get; set; }
 
         /// <summary>
         /// Gets or sets the committer date.
         /// </summary>
         /// <value>The date.</value>
-        public DateTimeOffset CommitterDate
-        {
-            get { return committerDateValue; }
-            set
-            {
-                if (!value.Equals(committerDateValue))
-                {
-                    committerDateValue = value;
-                    Changed = true;
-                }
-            }
-        }
+        public DateTimeOffset CommitterDate { get; set; }
 
         /// <summary>
         /// Gets or sets the commit message.
         /// </summary>
         /// <value>The message.</value>
-        public string Message
-        {
-            get { return messageValue; }
-            set
-            {
-                if (messageValue != value)
-                {
-                    messageValue = value;
-                    Changed = true;
-                }
-            }
-        }
+        public string Message { get; set; }
 
         /// <summary>
         /// Gets or sets the commit short message.
@@ -198,26 +105,14 @@ namespace GitRocketFilter
         /// <value>The commit short message.</value>
         public string MessageShort
         {
-            get { return messageShortValue; }
+            get { return commit.MessageShort; }
         }
 
         /// <summary>
         /// Gets or sets the tree object.
         /// </summary>
         /// <value>The tree.</value>
-        public Tree Tree
-        {
-            get { return tree; }
-
-            set
-            {
-                if (tree != value)
-                {
-                    tree = value;
-                    Changed = true;
-                }
-            }
-        }
+        public Tree Tree { get; set; }
 
         /// <summary>
         /// Gets the parent commits.
@@ -241,26 +136,10 @@ namespace GitRocketFilter
         public bool Discard { get; set; }
 
         /// <summary>
-        /// Resets this values to the original commit.
+        /// Gets or sets a tag object.
         /// </summary>
-        // ReSharper disable once InconsistentNaming
-        public void Reset()
-        {
-            authorNameValue = commit.Author.Name;
-            authorEmailValue = commit.Author.Email;
-            authorDateValue = commit.Author.When;
-
-            committerNameValue = commit.Committer.Name;
-            committerEmailValue = commit.Committer.Email;
-            committerDateValue = commit.Committer.When;
-
-            messageValue = commit.Message;
-            messageShortValue = commit.MessageShort;
-
-            tree = commit.Tree;
-
-            Changed = false;
-        }
+        /// <value>A tag object.</value>
+        public object Tag { get; set; }
 
         /// <summary>
         /// Gets the LibGit2 commit object.
@@ -269,6 +148,24 @@ namespace GitRocketFilter
         public Commit GitCommit
         {
             get { return commit; }
+        }
+
+        /// <summary>
+        /// Resets this values to the original commit.
+        /// </summary>
+        public void Reset()
+        {
+            AuthorName = commit.Author.Name;
+            AuthorEmail = commit.Author.Email;
+            AuthorDate = commit.Author.When;
+
+            CommitterName = commit.Committer.Name;
+            CommitterEmail = commit.Committer.Email;
+            CommitterDate = commit.Committer.When;
+
+            Message = commit.Message;
+
+            Tree = commit.Tree;
         }
 
         public override string ToString()
