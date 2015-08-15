@@ -1,4 +1,4 @@
-﻿// Copyright (c) Alexandre MUTEL. All rights reserved.
+﻿// Copyright (c) Alexandre Mutel. All rights reserved.
 // Licensed under the BSD license. See LICENSE file in the project root for full license information.
 using System;
 using System.IO;
@@ -9,6 +9,9 @@ using Mono.Options;
 
 namespace GitRocketFilter
 {
+    /// <summary>
+    /// Main entry point for git-rocket-filter
+    /// </summary>
     public class Program
     {
         public static int Main(params string[] args)
@@ -47,6 +50,7 @@ namespace GitRocketFilter
                 {"h|help", "Show this message and exit", (bool v) => showHelp = v},
                 {"v|verbose", "Show more verbose progress logs", (bool v) => rocket.Verbose = v},
                 {"d|repo-dir=", "By default git-rocket-filter is running in the current directory expected to be a git repository. You can change this repository by passing a new repository path with this option", v => repositoryPath = v },
+                {"disable-threads", "By default git-rocket-filter is running on multiple threads. This option allow to disable this feature.", (bool v) => rocket.DisableTasks = v },
                 _,
                 "## Options for commit filtering",
                 _,
@@ -66,6 +70,8 @@ namespace GitRocketFilter
                 {"r|remove=", "Remove files that match the {<pattern>} from the current tree being visited (blacklist).", v => removes.AppendLine(v)},
                 _,
                 {"remove-from-file=", "Remove files that match the patterns defined in the {<pattern_file>} from the current tree being visited (blacklist). ", v=> removes.Append(SafeReadText(v, "remove-from-file"))},
+                _,
+                {"include-links", "Include submodule git links for tree filtering (default is false). ", (bool v)=> rocket.IncludeLinks = v},
                 _,
                 "## Examples",
                 _,
@@ -157,8 +163,8 @@ namespace GitRocketFilter
                     throw new RocketException("No git directory found from [{0}]", repositoryPath);
                 }
 
-                rocket.WhiteListPathPatterns = keeps.ToString();
-                rocket.BlackListPathPatterns = removes.ToString();
+                rocket.KeepPatterns = keeps.ToString();
+                rocket.RemovePatterns = removes.ToString();
                 rocket.Run();
             }
             catch (Exception exception)
@@ -197,7 +203,8 @@ namespace GitRocketFilter
                 throw new OptionException(string.Format("File [{0}] not found", path), optionName);
             }
 
-            return File.ReadAllText(scriptPath);
+            // Make sure that we have a end-of-line at the end
+            return File.ReadAllText(scriptPath) + "\n";
         }
     }
 }
