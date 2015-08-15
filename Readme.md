@@ -169,6 +169,7 @@ Example:
 - `--keep MyDirectory`: Keeps a directory named `MyDirectory` 
 - `--keep '/My/Sub/**/MyFolder'`: Keeps all folders `MyFolder`recursively from the folder `/My/Sub`
 - `--keep '* => entry.Discard = entry.Size > 10000;'`: Keeps only files that are less than 10,000 bytes
+
 ___
 #### `--keep-script <script_file>`
 
