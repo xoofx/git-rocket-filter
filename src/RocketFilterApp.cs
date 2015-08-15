@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using LibGit2Sharp;
@@ -49,7 +50,7 @@ namespace GitRocketFilter
         private string branchRef;
         private Stopwatch clock;
 
-        private readonly HashSet<Commit> commitsDiscarded = new HashSet<Commit>();
+        private readonly HashSet<string> commitsDiscarded = new HashSet<string>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RocketFilterApp"/> class.
@@ -337,7 +338,7 @@ namespace GitRocketFilter
             foreach (var parent in commit.Parents)
             {
                 // Find a non discarded parent
-                var remapParent = FindRewrittenParent(parent.GitCommit);
+                var remapParent = FindRewrittenParent(parent);
 
                 // If remap parent is null, we can skip it
                 if (remapParent == null)
@@ -354,7 +355,7 @@ namespace GitRocketFilter
                 if (!treePruned && remapParent.Tree.Id == newTree.Id)
                 {
                     newCommit = remapParent;
-                    commitsDiscarded.Add(commit.GitCommit);
+                    commitsDiscarded.Add(commit.Sha);
                     treePruned = true;
                 }
             }
@@ -419,7 +420,7 @@ namespace GitRocketFilter
                     commit.Discard = true;
 
                     // Store that this commit was discarded (used for re-parenting commits)
-                    commitsDiscarded.Add(commit.GitCommit);
+                    commitsDiscarded.Add(commit.Sha);
                     return true;
                 }
 
@@ -459,7 +460,7 @@ namespace GitRocketFilter
                 if (commit.Discard)
                 {
                     // Store that this commit was discarded (used for reparenting commits)
-                    commitsDiscarded.Add(commit.GitCommit);
+                    commitsDiscarded.Add(commit.Sha);
                     return true;
                 }
             }
@@ -471,28 +472,29 @@ namespace GitRocketFilter
             Commit newCommit;
             if (!commitMap.TryGetValue(commit.Sha, out newCommit))
             {
-                newCommit = commit;
-
-                if (commitsDiscarded.Contains(newCommit))
+                if (commitsDiscarded.Contains(commit.Sha))
                 {
-                    // If parent commit was discarded, we need to find an available parent of this commit
-                    foreach (var parent in newCommit.Parents)
+                    foreach (var parent in commit.Parents)
                     {
                         var newParent = FindRewrittenParent(parent);
                         if (newParent != null)
                         {
-                            return newParent;
+                            newCommit = newParent;
+                            break;
                         }
                     }
-
-                    // For a initial commit that is already discarded, we don't have any parent commit
-                    return null;
                 }
+                else
+                {
+                    newCommit = commit;
+                }
+
+                commitMap.Add(commit.Sha, newCommit);
             }
 
             return newCommit;
         }
-
+        
         private void KeepEntries(SimpleCommit commit, Tree tree)
         {
             // Early exit if the commit was discarded by a tree-filtering
