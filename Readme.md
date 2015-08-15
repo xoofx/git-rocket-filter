@@ -127,8 +127,8 @@ ___
 #### `--keep <pattern [=> command | {% multiline command %}]>`  
 
 Keeps the specified file/directory based on a `<pattern and command>` `<pattern> [<command>]` where 
-- <pattern> is `.gitignore` file pattern 
-- <command> is an optional script to evaluate on each entry: an optional script to evaluate on each entry.
+- `<pattern>` is `.gitignore` file pattern 
+- `<command>` is an optional script to evaluate on each entry: an optional script to evaluate on each entry.
     - for a one line script use the association `=>` like `=> entry.Discard = entry.Size > 10000;`
     - for a multiline script use the script enclosed by `{%` and `%}` 
     
@@ -160,7 +160,7 @@ entry.IsLink           |r     | A boolean indicating if the entry is a link comm
 entry.Tag             |rw    | A property to store a user object
 entry.Discard         |rw    | A boolean that indicates if we want to keep the entry or discard it. Default is **false** for `--keep` matching and **true** for `--remove` matching.
 
-The options `--keep, --remove, --keep-script, --remove-script` are **tree-filtering** operations because you can effectively rewrite the tree (directory/files) associated to a commit.
+The options `--keep`, `--remove`, `--keep-script`, `--remove-script` are **tree-filtering** operations because you can effectively rewrite the tree (directory/files) associated to a commit.
 
 As the commit object is also accessible in the script, it is still possible to discard a commit from a tree-filtering operation (For example, a tree-filtering could decide to discard a commit based on the content of some files, an author modifying a certain file...etc.).
 
