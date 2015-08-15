@@ -188,7 +188,7 @@ namespace GitRocketFilter
             branchRef = "refs/heads/" + BranchName;
             if (repo.Refs[branchRef] != null && !BranchOverwrite)
             {
-                throw new RocketException("The branch [{0}] already exist. Cannot overwrite without force option");
+                throw new RocketException("The branch [{0}] already exist. Cannot overwrite without force option", BranchName);
             }
 
             // Validate the revision range
@@ -775,7 +775,7 @@ namespace GitRocketFilter
 
             if (isInMultiLineScript)
             {
-                throw new RocketException("Expecting the end %} of multiline script: {0}", multiLineScript);
+                throw new RocketException("Expecting the end %}} of multiline script: {0}", multiLineScript);
             }
 
             if (pathPatternsNoScript.Count > 0)
