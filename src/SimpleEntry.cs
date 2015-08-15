@@ -252,6 +252,11 @@ namespace GitRocketFilter
             return entry.entry;
         }
 
+        public override string ToString()
+        {
+            return string.Format("Entry: {0} => {1}", Path, Id);
+        }
+
         internal struct EntryValue
         {
             public EntryValue(Blob blob, Mode mode)
