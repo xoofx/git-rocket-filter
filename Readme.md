@@ -14,7 +14,7 @@ Powerful and fast command line tool to rewrite git branches powered by .NET, [Li
 
 ## Description
 
-The purpose of `git-rocket-filter` is similar to the command `git-filter-branch` while providing the following unique features:
+The purpose of `git-rocket-filter` is similar to the command [`git-filter-branch`](http://git-scm.com/docs/git-filter-branch) while providing the following unique features:
 
 - Fast rewriting of commits and trees (by an order of `x10` to `x100`).
 - Built-in support for both **white-listing** with `--keep` (keeps files or directories) and **black-listing** with `--remove` options.
