@@ -22,6 +22,8 @@ The purpose of `git-rocket-filter` is similar to the command [`git-filter-branch
 - Powerful, fast and easy C# Scripting for both commit filtering and tree filtering
 - Support for scripting in tree-filtering per file/directory pattern
 
+Tested on Windows and Linux (with Mono installed).
+
 
 > ** Warning **
 > Usage of this command has the same warning than git-filter-branch: *"The rewritten history will have different object names for all the objects and will not converge with the original branch. You will not be able to easily push and distribute the rewritten branch on top of the original branch. Please do not use this command if you do not know the full implications, and avoid using it anyway, if a simple single commit would suffice to fix your problem."* (from [git-filter-branch](http://git-scm.com/docs/git-filter-branch) documentation)
@@ -29,6 +31,12 @@ The purpose of `git-rocket-filter` is similar to the command [`git-filter-branch
 ## Download
 
 You can get the latest stable binaries from the <a href="https://github.com/xoofx/GitRocketFilter/releases" class="btn btn-primary">Release</a> page.
+
+#### Requirements On Linux
+
+- You need to have installed Mono: `sudo apt-get install mono-complete` 
+- Currently the command must be run from the folder it is unzipped as it cannot found the native dlls. Use the `--repo-dir` to specify on which repo directory to work.
+
 
 ## Examples
 
