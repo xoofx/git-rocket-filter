@@ -14,9 +14,18 @@ namespace GitRocketFilter
     /// </summary>
     public class Program
     {
+        [ThreadStatic] 
+        public static TextWriter RedirectOutput;
+
         public static int Main(params string[] args)
         {
             var rocket = new RocketFilterApp();
+
+            if (RedirectOutput == null)
+            {
+                RedirectOutput = Console.Out;
+            }
+            rocket.OutputWriter = RedirectOutput;
 
             var exeName = Path.GetFileNameWithoutExtension(typeof(Program).Assembly.Location);
             bool showHelp = false;
@@ -24,6 +33,7 @@ namespace GitRocketFilter
             var removes = new StringBuilder();
 
             string repositoryPath = Environment.CurrentDirectory;
+
 
             var _ = string.Empty;
             var options = new OptionSet
@@ -133,7 +143,7 @@ namespace GitRocketFilter
 
                 if (showHelp)
                 {
-                    options.WriteOptionDescriptions(Console.Out);
+                    options.WriteOptionDescriptions(rocket.OutputWriter);
                     return 0;
                 }
 
@@ -173,14 +183,14 @@ namespace GitRocketFilter
                 {
                     var backColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(exception.Message);
+                    RedirectOutput.WriteLine(exception.Message);
                     Console.ForegroundColor = backColor;
                     var rocketException = exception as RocketException;
                     if (rocketException != null && rocketException.AdditionalText != null)
                     {
-                        Console.WriteLine(rocketException.AdditionalText);
+                        RedirectOutput.WriteLine(rocketException.AdditionalText);
                     }
-                    Console.WriteLine("See --help for usage");
+                    RedirectOutput.WriteLine("See --help for usage");
                     return 1;
                 }
                 else

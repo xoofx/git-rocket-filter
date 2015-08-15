@@ -2,6 +2,7 @@
 // Licensed under the BSD license. See LICENSE file in the project root for full license information.
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace GitRocketFilter.Tests
 {
@@ -10,6 +11,14 @@ namespace GitRocketFilter.Tests
     /// </summary>
     public class TestCommitFiltering : TestRepoBase
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestCommitFiltering"/> class.
+        /// </summary>
+        /// <param name="outputHelper">The output helper.</param>
+        public TestCommitFiltering(ITestOutputHelper outputHelper) : base(outputHelper)
+        {
+        }
+
         /// <summary>
         /// Appends the message "This is a test" to all commits.
         /// </summary>

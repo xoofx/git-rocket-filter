@@ -4,6 +4,7 @@
 using System.Linq;
 using LibGit2Sharp;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace GitRocketFilter.Tests
 {
@@ -12,6 +13,10 @@ namespace GitRocketFilter.Tests
     /// </summary>
     public class TestTreeFiltering : TestRepoBase
     {
+        public TestTreeFiltering(ITestOutputHelper outputHelper) : base(outputHelper)
+        {
+        }
+
         /// <summary>
         /// Keeps only /Test1 directory
         /// </summary>

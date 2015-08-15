@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using LibGit2Sharp;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace GitRocketFilter.Tests
 {
@@ -13,6 +15,12 @@ namespace GitRocketFilter.Tests
     {
         protected const string NewBranch = "new_master";
         protected const string NewBranchRef = "refs/heads/new_master";
+        private readonly ITestOutputHelper outputHelper;
+
+        protected TestRepoBase(ITestOutputHelper outputHelper)
+        {
+            this.outputHelper = outputHelper;
+        }
 
         protected DisposeTempRepo InitializeTest([System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
         {
@@ -27,7 +35,10 @@ namespace GitRocketFilter.Tests
             var repoSourcePath = Path.Combine(path, @"..\..\test_repo\");
             DirectoryCopy(repoSourcePath, repoPath, true);
             Directory.Move(Path.Combine(repoName, "dotgit"), Path.Combine(repoName, ".git"));
-            return new DisposeTempRepo(repoPath);
+
+            var tempRepo = new DisposeTempRepo(repoPath);
+            Program.RedirectOutput = new TextWriterRedirect(outputHelper, tempRepo.OutputBuilder);
+            return tempRepo;
         }
 
         protected static string AssertBranchRef(Repository repo)
@@ -137,20 +148,77 @@ namespace GitRocketFilter.Tests
 
         protected struct DisposeTempRepo : IDisposable
         {
+            private string text;
+
             public DisposeTempRepo(string path)
             {
                 Path = path;
                 Repo = new Repository(path);
+                text = null;
+                OutputBuilder = new StringBuilder();
             }
 
             public readonly string Path;
 
             public readonly Repository Repo;
 
+            public String Output
+            {
+                get { return text ?? (text = OutputBuilder.ToString()); }
+            }
+
+            internal readonly StringBuilder OutputBuilder;
+
             public void Dispose()
             {
                 Repo.Dispose();
                 RemoveDirectory(Path);
+            }
+        }
+
+        private class TextWriterRedirect : TextWriter
+        {
+            private readonly ITestOutputHelper outputHelper;
+            private readonly StringBuilder globalLogger;
+            private readonly StringBuilder buffer;
+
+            public TextWriterRedirect(ITestOutputHelper outputHelper, StringBuilder globalLogger)
+            {
+                this.outputHelper = outputHelper;
+                this.globalLogger = globalLogger;
+                buffer = new StringBuilder(1024);
+            }
+
+            public override Encoding Encoding
+            {
+                get { return Encoding.UTF8; }
+            }
+
+            public override void Write(char value)
+            {
+                if (value == '\n')
+                {
+                    var text = buffer.ToString();
+                    outputHelper.WriteLine(text);
+                    globalLogger.AppendLine(text);
+                    buffer.Clear();
+                }
+                else
+                {
+                    buffer.Append(value);
+                }
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (buffer.Length > 0)
+                {
+                    var text = buffer.ToString();
+                    outputHelper.WriteLine(text);
+                    globalLogger.AppendLine(text);
+                    buffer.Clear();
+                }
+                base.Dispose(disposing);
             }
         }
     }

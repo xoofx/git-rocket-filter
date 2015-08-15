@@ -127,11 +127,22 @@ namespace GitRocketFilter
         public bool DisableTasks { get; set; }
 
         /// <summary>
+        /// Gets or sets the output writer.
+        /// </summary>
+        /// <value>The output writer.</value>
+        public TextWriter OutputWriter { get; set; }
+
+        /// <summary>
         /// Runs the filtering.
         /// </summary>
         public void Run()
         {
             clock = Stopwatch.StartNew();
+
+            if (OutputWriter == null)
+            {
+                OutputWriter = Console.Out;
+            }
 
             // Validate parameters
             ValidateParameters();
@@ -264,16 +275,16 @@ namespace GitRocketFilter
             {
                 var commit = GetSimpleCommit(commits[i]);
 
-                Console.Write("Rewrite {0} ({1}/{2}){3}", commit.Id, i + 1, commits.Count, (i+1) == commits.Count ? string.Empty : "\r");
+                OutputWriter.Write("Rewrite {0} ({1}/{2}){3}", commit.Id, i + 1, commits.Count, (i+1) == commits.Count ? string.Empty : "\r");
                 ProcessCommit(commit);
             }
             if (commits.Count == 0)
             {
-                Console.WriteLine("Nothing to rewrite.");
+                OutputWriter.WriteLine("Nothing to rewrite.");
             }
             else
             {
-                Console.WriteLine(" in {0:#.###}s", clock.Elapsed.TotalSeconds);
+                OutputWriter.WriteLine(" in {0:#.###}s", clock.Elapsed.TotalSeconds);
             }
         }
 
@@ -291,7 +302,7 @@ namespace GitRocketFilter
                 }
 
                 repo.Refs.Add(branchRef, lastCommit.Id);
-                Console.WriteLine("Ref '{0}' was {1}", branchRef, originalRef != null && BranchOverwrite ? "overwritten" : "created");
+                OutputWriter.WriteLine("Ref '{0}' was {1}", branchRef, originalRef != null && BranchOverwrite ? "overwritten" : "created");
             }
         }
 
@@ -776,7 +787,7 @@ namespace GitRocketFilter
                 {
                     foreach (var pattern in pathPatternsNoScript)
                     {
-                        Console.WriteLine("Found {0} pattern [{1}]", context, pattern);
+                        OutputWriter.WriteLine("Found {0} pattern [{1}]", context, pattern);
                     }
                 }
 
@@ -835,8 +846,8 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             if (Verbose)
             {
                 var prettyCode = DumpPrettyCode(code);
-                Console.WriteLine("Patterns with scripting:");
-                Console.WriteLine(prettyCode);
+                OutputWriter.WriteLine("Patterns with scripting:");
+                OutputWriter.WriteLine(prettyCode);
             }
 
             var syntaxTree = CSharpSyntaxTree.ParseText(code);
