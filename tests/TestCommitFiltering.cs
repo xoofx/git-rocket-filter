@@ -28,11 +28,11 @@ namespace GitRocketFilter.Tests
             var test = InitializeTest();
 
             // Test directly the main program as we want to test also command line parameters
-            Program.Main("--commit-filter",
+            Assert.Equal(0, Program.Main("--commit-filter",
                 @"commit.Message += ""This is a test"";",
                 "--repo-dir", test.Path,
                 "--branch", NewBranch,
-                @"HEAD");
+                @"HEAD"));
 
             var repo = test.Repo;
             var headNewMaster = AssertBranchRef(repo);
@@ -69,11 +69,11 @@ namespace GitRocketFilter.Tests
             var test = InitializeTest();
 
             // Test directly the main program as we want to test also command line parameters
-            Program.Main("--commit-filter",
+            Assert.Equal(0, Program.Main("--commit-filter",
                 @"commit.Message += ""This is a test"";",
                 "--repo-dir", test.Path,
                 "--branch", NewBranch,
-                @"HEAD~4..HEAD");
+                @"HEAD~4..HEAD"));
 
             var repo = test.Repo;
             var headNewMaster = AssertBranchRef(repo);
@@ -119,12 +119,12 @@ namespace GitRocketFilter.Tests
             var test = InitializeTest();
 
             // Test directly the main program as we want to test also command line parameters
-            Program.Main("--commit-filter",
+            Assert.Equal(0, Program.Main("--commit-filter",
                 @"commit.Message += ""This is a test"";",
                 "--repo-dir", test.Path,
                 "--branch", NewBranch,
                 "--detach",
-                @"HEAD~2..HEAD");
+                @"HEAD~2..HEAD"));
 
             var repo = test.Repo;
             var headNewMaster = AssertBranchRef(repo);
@@ -168,11 +168,11 @@ namespace GitRocketFilter.Tests
             var test = InitializeTest();
 
             // Test directly the main program as we want to test also command line parameters
-            Program.Main("--commit-filter",
+            Assert.Equal(0, Program.Main("--commit-filter",
                 @"commit.Discard = !commit.Message.Contains(""test.bin""); if (!commit.Discard) { commit.AuthorName=""NewAuthor""; commit.AuthorEmail = ""test@gmail.com""; commit.CommitterName =""NewCommitter""; commit.CommitterEmail = ""test2@gmail.com""; }",
                 "--repo-dir", test.Path,
                 "--branch", NewBranch
-                );
+                ));
 
             var repo = test.Repo;
             var headNewMaster = AssertBranchRef(repo);
