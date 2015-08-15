@@ -250,23 +250,23 @@ Use with commit filtering. By default, the commit filtering keeps the original p
 
 This can be useful if you want to extract a tree 
 ___
-#### [--include-links]
+#### `[--include-links]`
 
 By default, in a tree-filtering (`--keep`, `--remove`...), git-rocket-filter doesn't include links to git submodule. You can include links that specifying this option. Note that while accessing the entry in the script you must check whether the entry is a blob with `entry.IsBlob` or a link `entry.IsLink` as some properties are not valid depending on the type (like `entry.Size` only valid for blob).
 ___
-#### [-d|--repo-dir <repo_path>]  
+#### `[-d|--repo-dir <repo_path>]`  
 
 By default, git-rocket-filter is expecting to be ran under a git repository. You can specify an alternative directory `<repo_path>` to perform a filtering operations. 
 ___
-#### [-h|--help]  
+#### `[-h|--help]`  
 
 Prints some helps about command in the console.
 ___
-#### [-v|--verbose] 
+#### `[-v|--verbose]` 
 
 Prints some diagnostic messages about the patterns found and the final generated C# code. 
   
-## Implementation
+## Implementation details
 
 git-rocket-filter is mostly a combined wrapper around [LibGit2Sharp](https://github.com/libgit2/libgit2sharp) and [Roslyn](https://github.com/dotnet/roslyn).
 
@@ -280,7 +280,7 @@ This software is released under the [BSD-Clause 2 license](http://opensource.org
 
 ## Credits
 
-This tool couldn't have been developed without using the following components:
+This tool wouldn't have been developed without using the following components:
 
 - [LibGit2](https://libgit2.github.com/) and [LibGit2Sharp](https://github.com/libgit2/libgit2sharp):  libgit2 is a portable, pure C implementation of the Git core methods provided as a re-entrant linkable library with a solid API, allowing you to write native speed custom Git applications in any language which supports C bindings. LigGit2Sharp are the bindings of libgit2 for .NET. 
 
