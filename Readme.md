@@ -6,11 +6,13 @@ Powerful and fast command line tool to rewrite git branches powered by .NET, [Li
 
 
     git-rocket-filter [-b|--branch  <branch_name>]  [--force]
-                      [-c|--commit-filter <command>]  [--commit-filter-script <script>]  [--detach]  
+                      [-c|--commit-filter <command>]  [--commit-filter-script <script>]  
+                      [--detach]  
                       [-k|--keep <patternAndCommand>]  [--keep-script <script>]
                       [-r|--remove <patternAndCommand>]  [--remove-script <script>]
                       [--include-links]     
-                      [-d|--repo-dir <repo_path>]  [-h|--help]  [-v|--verbose]  [<revision>]
+                      [-d|--repo-dir <repo_path>]  [-h|--help]  [-v|--verbose]
+                      [<revision>]
 
 ## Description
 
@@ -31,7 +33,7 @@ Tested on Windows and Linux (with Mono installed).
 
 ## Download
 
-You can get the latest stable binaries from the <a href="https://github.com/xoofx/GitRocketFilter/releases" class="btn btn-primary">Release</a> page.
+You can get the latest stable binaries from the [Release](https://github.com/xoofx/GitRocketFilter/releases) page.
 
 #### Requirements On Linux
 
@@ -43,7 +45,8 @@ You can get the latest stable binaries from the <a href="https://github.com/xoof
 
 **Change commit messages:**
 
-    git-rocket-filter --branch TestBranch --commit-filter 'commit.Message += "Added by git-rocket-filter";'
+    git-rocket-filter --branch TestBranch 
+                      --commit-filter 'commit.Message += "Added by git-rocket-filter";'
 
 Rewrite all commits by adding the message "Added by git-rocket-filter" and store the results in the new branch `TestBranch`
 
@@ -66,12 +69,13 @@ Keeps only the directory `MyDirectory` except all `*.txt` files and store the re
 
 **Removes files bigger than 1Mo**:
 
-    git-rocket-filter --branch TestBranch --delete '* => entry.Discard = entry.Size > 1024*1024;''
+    git-rocket-filter --branch TestBranch 
+                      --delete '* => entry.Discard = entry.Size > 1024*1024;''
 
 Removes all files bigger than 1Mo and store results to the new branch `TestBranch` 
 
 > **Note For Windows Users**
-> The command above are valid for a bash shell on an Unix machine. On Windows, depending if you are running a command in a DOS/batch or a msysgit bash, some escape characters may be required in the command line to pass correctly the options (This is especially important if you are passing a C# script code in the command line):
+> The command lines above are valid for a bash shell on an Unix machine. On Windows, depending if you are running a command in a DOS/batch or a msysgit bash, some escape characters may be required in the command line to pass correctly the options (This is especially important if you are passing a C# script code in the command line):
 > - In a **DOS/Batch**: you can use the double quote `"` to group pattern/command. For example, you can write the command above `git-rocket-filter --branch TestBranch --delete "* => entry.Discard = entry.Size > 1024*1024;"'. Note that DOS/Batch use [special escape characters](http://www.robvanderwoude.com/escapechars.php) that you should be aware of.
 > - In a **Git bash** commonly shipped with msysgit you should be careful about the way [mingw is escaping characters](http://www.mingw.org/wiki/Posix_path_conversion) on Windows. Most notably, if you use a pattern like `--keep /MyDirectory` mingw will expand it to `--keep  C:/Program Files (x86)/Git/bin/MyDirectory` which can lead to unexpected errors!
 >
@@ -80,14 +84,15 @@ Removes all files bigger than 1Mo and store results to the new branch `TestBranc
 
 ## Options
 
-### `-b | --branch <branchName>`
+#### `-b | --branch <branchName>`
+
 
 This option is **required**. Unlike git-filter-branch, git-rocket-filter doesn't modify your current branch. Instead, you need to pass a branch name where it will store the results of the filtering.
 
 Note that if the branch already exists, you can force to write to it by using the option `--force`   
 
-
-### `-c | --commit-filter <command>`
+___
+#### `-c | --commit-filter <command>`
 
 Runs the &lt;command&gt; as a C# script on each commit. The command has access to the following variable:
 
@@ -114,12 +119,12 @@ commit.Discard         |rw    | A boolean that indicates if we want to keep the 
 To **discard a commit**, a command can simply set `if (<condition>) { commit.Discard = true; }` or simply `commit.Discard = <condition>;` to set it based on the result of conditions...etc.
 
 This option is mostly used for **commit-filtering** (that can be used together with tree-filtering options like `--keep`, `--remove`...) but as you have access to to the commit.Tree, you can perform also special tree-filtering accessing directly the tree. For simpler cases where you are just looking for keeping/removing files, the simpler options `--keep`/`--remote` are much more suitable and efficient. 
-
-### `--commit-filter-script <script_file>`
+___
+#### `--commit-filter-script <script_file>`
 
 Similar to `--commit-filter`, but it reads the script from the given &lt;script_file&gt; 
-
-### `--keep <pattern [=> command | {% multiline command %}]>`  
+___
+#### `--keep <pattern [=> command | {% multiline command %}]>`  
 
 Keeps the specified file/directory based on a `<pattern and command>` `<pattern> [<command>]` where 
 - <pattern> is `.gitignore` file pattern 
@@ -164,8 +169,8 @@ Example:
 - `--keep MyDirectory`: Keeps a directory named `MyDirectory` 
 - `--keep '/My/Sub/**/MyFolder'`: Keeps all folders `MyFolder`recursively from the folder `/My/Sub`
 - `--keep '* => entry.Discard = entry.Size > 10000;'`: Keeps only files that are less than 10,000 bytes
-
-### `--keep-script <script_file>`
+___
+#### `--keep-script <script_file>`
 
 Similar to `--keep`, but it reads the patterns and commands from a script &lt;script_file&gt;
 
@@ -173,7 +178,8 @@ A typical script file could be:
 
 ```
 # This is a pattern file
-# It is using the same syntax as .gitignore (with additional syntax to attach a script per pattern)
+# It is using the same syntax as .gitignore (with additional syntax to attach a script
+# per pattern)
 # Keeps all files
 *
 # Except
@@ -185,7 +191,8 @@ Using scripts in the file is also straightfoward (no need to care about escape c
 **Single Line scripts**
 
 ```
-# Keep all files that are smaller than 1024x1024 bytes. Note the one-line script using the `=>` 
+# Keep all files that are smaller than 1024x1024 bytes. Note the one-line script using 
+# the separator `=>` 
 
 *  => entry.Discard = entry.Size > 1024*1024;
 
@@ -208,25 +215,24 @@ Using scripts in the file is also straightfoward (no need to care about escape c
 ```
 
 You can use multiple `--keep` and `--keep-script` options from the same command line.
-
-### `--remove <pattern [=> command | {% multiline command %}]>`  
+___
+#### `--remove <pattern [=> command | {% multiline command %}]>`  
 
 Removes the specified file/directory based on a `<pattern and command>` `<pattern> [<command>]`. Similar to the way `--keep` is working but by deleting files instead.
 
 The same remarks applies than `--keep` applies to this option
 
 Note when using script that the `entry.Discard` is by default set to **true** for each entry visited. You can reverse the behavior by setting **false** on a particular entry.
-
-
-### `--remove-script <script_file>`
+___
+#### `--remove-script <script_file>`
 
 Similar to `--remove`, it reads the patterns and commands from a script &lt;script_file&gt; and contains a .git-ignore list of pattern to remove.
 
 See `--keep-script` for a description about these pattern files.
 
 You can use multiple `--remove` and `--remove-script` options from the same command line.
-
-### `[<revision>]`
+___
+#### `[<revision>]`
 
 By default, git-rocket-filter is working from the first commit to the HEAD on the current branch.
 
@@ -237,32 +243,32 @@ Some example of revision format:
 - `commitId`: filters until the commitId
 - `fromCommitId..toCommitId` filter fromCommitId (non inclusive) to toCommitId (inclusive)
 - `HEAD~4..HEAD` filter the last 4 commits accessible from HEAD (going through all merge branches if any)
-
-### `[--detach]`
+___
+#### `[--detach]`
 
 Use with commit filtering. By default, the commit filtering keeps the original parents of the first commits. Using the `--detach` option allows to completely remove the parents of the first commit. 
 
 This can be useful if you want to extract a tree 
-
-### [--include-links]
+___
+#### [--include-links]
 
 By default, in a tree-filtering (`--keep`, `--remove`...), git-rocket-filter doesn't include links to git submodule. You can include links that specifying this option. Note that while accessing the entry in the script you must check whether the entry is a blob with `entry.IsBlob` or a link `entry.IsLink` as some properties are not valid depending on the type (like `entry.Size` only valid for blob).
-
-### [-d|--repo-dir <repo_path>]  
+___
+#### [-d|--repo-dir <repo_path>]  
 
 By default, git-rocket-filter is expecting to be ran under a git repository. You can specify an alternative directory `<repo_path>` to perform a filtering operations. 
-
-### [-h|--help]  
+___
+#### [-h|--help]  
 
 Prints some helps about command in the console.
-
-### [-v|--verbose] 
+___
+#### [-v|--verbose] 
 
 Prints some diagnostic messages about the patterns found and the final generated C# code. 
   
 ## Implementation
 
-git-rocket-filter is mostly a combined wrapper around LibGit2Sharp and Roslyn.
+git-rocket-filter is mostly a combined wrapper around [LibGit2Sharp](https://github.com/libgit2/libgit2sharp) and [Roslyn](https://github.com/dotnet/roslyn).
 
 In order to increase the performance of rewriting commits, git-rocket-filter is built upon:
 - .NET Parallel tasks and threads to dispatch the work on multiple cores. The dispatch is done per tree visited and if there is a need to to perform gitignore pattern matching.
