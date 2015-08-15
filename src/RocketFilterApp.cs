@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using LibGit2Sharp;
@@ -32,7 +33,7 @@ namespace GitRocketFilter
         private Repository repo;
         private Commit lastCommit;
 
-        private readonly Dictionary<TreeEntry, SimpleEntry.EntryValue> entriesToKeep = new Dictionary<TreeEntry, SimpleEntry.EntryValue>();
+        private readonly Dictionary<TreeEntry, SimpleEntry.EntryValue> entriesToKeep = new Dictionary<TreeEntry, SimpleEntry.EntryValue>(ObjectReferenceEqualityComparer<TreeEntry>.Default);
 
         private readonly List<Task> pendingTasks = new List<Task>();
 
@@ -1073,6 +1074,36 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
                 repo.Dispose();
                 repo = null;
             }
+        }
+
+        /// <summary>
+        /// A generic object comparerer that would only use object's reference, 
+        /// ignoring any <see cref="IEquatable{T}"/> or <see cref="object.Equals(object)"/>  overrides.
+        /// http://stackoverflow.com/a/1890230/1356325
+        /// </summary>
+        private class ObjectReferenceEqualityComparer<T> : EqualityComparer<T>
+            where T : class
+        {
+            private static IEqualityComparer<T> _defaultComparer;
+
+            public new static IEqualityComparer<T> Default
+            {
+                get { return _defaultComparer ?? (_defaultComparer = new ObjectReferenceEqualityComparer<T>()); }
+            }
+
+            #region IEqualityComparer<T> Members
+
+            public override bool Equals(T x, T y)
+            {
+                return ReferenceEquals(x, y);
+            }
+
+            public override int GetHashCode(T obj)
+            {
+                return RuntimeHelpers.GetHashCode(obj);
+            }
+
+            #endregion
         }
     }
 }
