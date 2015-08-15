@@ -29,7 +29,8 @@ Tested on Windows and Linux (with Mono installed).
 
 
 > ** Warning **
-> Usage of this command has the same warning than git-filter-branch: *"The rewritten history will have different object names for all the objects and will not converge with the original branch. You will not be able to easily push and distribute the rewritten branch on top of the original branch. Please do not use this command if you do not know the full implications, and avoid using it anyway, if a simple single commit would suffice to fix your problem."* (from [git-filter-branch](http://git-scm.com/docs/git-filter-branch) documentation)
+> Usage of this command has the same warning than git-filter-branch: *"The rewritten history will have different object names for all the objects and will not converge with the original branch. You will not be able to easily push and distribute the rewritten branch on top of the original branch. Please do not use this command if you do not know the full implications, and avoid using it anyway, if a simple single commit would suffice to fix your problem."* 
+> (from [git-filter-branch](http://git-scm.com/docs/git-filter-branch) documentation)
 
 ## Download
 
@@ -251,6 +252,7 @@ Some example of revision format:
 - `commitId`: filters until the commitId
 - `fromCommitId..toCommitId` filter fromCommitId (non inclusive) to toCommitId (inclusive)
 - `HEAD~4..HEAD` filter the last 4 commits accessible from HEAD (going through all merge branches if any)
+
 ___
 #### `[--detach]`
 
