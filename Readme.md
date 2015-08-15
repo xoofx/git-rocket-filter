@@ -35,11 +35,12 @@ Tested on Windows and Linux (with Mono installed).
 
 You can get the latest stable binaries from the [Release](https://github.com/xoofx/GitRocketFilter/releases) page.
 
-#### Requirements On Linux
+#### Requirements
 
-- You need to have installed Mono: `sudo apt-get install mono-complete` 
-- Currently the command must be run from the folder it is unzipped as it cannot found the native dlls. Use the `--repo-dir` to specify on which repo directory to work.
-
+On Windows, you need .NET 4.0+ Framework installed
+On other platforms, you need [Mono](http://www.mono-project.com/) to be installed:
+- On Linux: `sudo apt-get install mono-complete`
+- On MacOSX: Download [Mono for Mac OS X](http://www.mono-project.com/download/#download-mac) 
 
 ## Examples
 
