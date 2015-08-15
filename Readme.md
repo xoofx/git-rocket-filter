@@ -281,6 +281,13 @@ In order to increase the performance of rewriting commits, git-rocket-filter is 
 - .NET Parallel tasks and threads to dispatch the work on multiple cores. The dispatch is done per tree visited and if there is a need to to perform gitignore pattern matching.
 - Efficiently caching .gitignore pattern entries from LibGit2Sharp so that we avoid to callback libgit2 to perform pattern matching (which is cpu consuming in libgit2)
 
+### Performance
+
+Extracting the folder `Documentation` from the repository [git](https://github.com/git/git) which is composed of 40,000+ commits takes around 250s (4min).
+
+There are still some areas where `git-rocket-filter` may be inefficient or could be further optimized. For example, `git-rocket-filter` visit the full tree of each commit in order to save the list of entries to keep (entries that can be later selectively removed by a --delete pattern). This visit could be optimized when we know that there won't be any selective patterns, and instead of going deep into the tree, just keep top level trees...
+
+But at least, performance of `git-rocket-filter` should be on average much better than `git-filter-branch`, moreover when a whitelist pattern (--keep) is required.
 
 ## License
 This software is released under the [BSD-Clause 2 license](http://opensource.org/licenses/BSD-2-Clause). 
