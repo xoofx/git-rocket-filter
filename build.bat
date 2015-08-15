@@ -1,7 +1,7 @@
 @echo off
 setlocal
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\vc\vcvarsall.bat" x86
-set GITROCKET_ZIP=git-rocket-filter-v1.0.zip
+set GITROCKET_ZIP=git-rocket-filter-v1.1.zip
 set GITROCKET_RELEASE_FOLDER=%~dp0\Bin\Release
 RMDIR /S /Q "%GITROCKET_RELEASE_FOLDER%"
 msbuild /tv:4.0 /t:Build /verbosity:quiet /clp:ErrorsOnly /fl /flp:logfile=BuildErrors.log;ErrorsOnly "/p:Configuration=Release;Platform=Any CPU" GitRocketFilter.sln
