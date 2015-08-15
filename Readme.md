@@ -26,6 +26,9 @@ The purpose of `git-rocket-filter` is similar to the command `git-filter-branch`
 > ** Warning **
 > Usage of this command has the same warning than git-filter-branch: *"The rewritten history will have different object names for all the objects and will not converge with the original branch. You will not be able to easily push and distribute the rewritten branch on top of the original branch. Please do not use this command if you do not know the full implications, and avoid using it anyway, if a simple single commit would suffice to fix your problem."* (from [git-filter-branch](http://git-scm.com/docs/git-filter-branch) documentation)
 
+## Download
+
+You can get the latest stable binaries from the <a href="https://github.com/xoofx/GitRocketFilter/releases" class="btn btn-primary">Download</a> page.
 
 ## Examples
 
@@ -248,11 +251,6 @@ Prints some helps about command in the console.
 
 Prints some diagnostic messages about the patterns found and the final generated C# code. 
   
-## Distribution
-
-This tool is distributed in binary form
-
-
 ## License
 This software is released under the [BSD-Clause 2 license](http://opensource.org/licenses/BSD-2-Clause). 
 
@@ -261,6 +259,9 @@ This software is released under the [BSD-Clause 2 license](http://opensource.org
 This tool couldn't have been developed without using the following components:
 
 - [LibGit2](https://libgit2.github.com/) and [LibGit2Sharp](https://github.com/libgit2/libgit2sharp):  libgit2 is a portable, pure C implementation of the Git core methods provided as a re-entrant linkable library with a solid API, allowing you to write native speed custom Git applications in any language which supports C bindings. LigGit2Sharp are the bindings of libgit2 for .NET. 
+
+> Note that git-rocket-filter is still using a [forked version of LibGit2Sharp](https://github.com/xoofx/libgit2sharp/tree/git-rocket-filter) while [waiting the PR](https://github.com/libgit2/libgit2sharp/pulls/xoofx) to be accepted by the LibGit2Sharp project. 
+
 - [Roslyn](https://github.com/dotnet/roslyn):  The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers with rich code analysis APIs.
 
 # Author
