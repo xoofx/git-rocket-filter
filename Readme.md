@@ -171,7 +171,7 @@ Example:
 - `--keep '* => entry.Discard = entry.Size > 10000;'`: Keeps only files that are less than 10,000 bytes
 
 > Note:
-> - For **patterns with scripts**, they are resolved before patterns with no scripts, in the order they are passed to the command line (or in the order of lines from a script file). 
+> - For **patterns with scripts**, they are resolved before patterns with no scripts, in the order they are passed to the command line (or in the order of lines from a script file). The first pattern that matches an entry is used for this path without going through remaining patterns. 
 > - For **patterns with no scripts**, the rules are squashed in the same way `.gitignore` is squashing them, meaning that order is not relevant in this case. 
 
 ___
