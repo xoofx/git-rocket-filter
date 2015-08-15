@@ -2,7 +2,7 @@
 
 Powerful and fast command line tool to rewrite git branches powered by .NET, [LibGit2Sharp](https://github.com/libgit2/libgit2sharp) and [Roslyn](https://github.com/dotnet/roslyn).
 
-## Synopsys
+## Synopsis
 
 
     git-rocket-filter [-b|--branch  <branch_name>]  [--force]
