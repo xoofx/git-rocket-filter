@@ -334,7 +334,7 @@ namespace GitRocketFilter
             // Process parents
             var newParents = new List<Commit>();
             bool hasOriginalParents = false;
-            bool treePruned = false;
+            Commit pruneCommitParentCandidate = null;
             foreach (var parent in commit.Parents)
             {
                 // Find a non discarded parent
@@ -352,12 +352,16 @@ namespace GitRocketFilter
                 newParents.Add(remapParent);
 
                 // If parent tree is equal, we can prune this commit
-                if (!treePruned && remapParent.Tree.Id == newTree.Id)
+                if (pruneCommitParentCandidate == null && remapParent.Tree.Id == newTree.Id)
                 {
-                    newCommit = remapParent;
-                    commitsDiscarded.Add(commit.Sha);
-                    treePruned = true;
+                    pruneCommitParentCandidate = remapParent;
                 }
+            }
+
+            if (pruneCommitParentCandidate != null)
+            {
+               newCommit = pruneCommitParentCandidate;
+               commitsDiscarded.Add(commit.Sha);
             }
 
             // If we detach first commits from their parents
