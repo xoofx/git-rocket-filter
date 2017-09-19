@@ -129,6 +129,12 @@ namespace GitRocketFilter
         public bool DisableTasks { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to preserve empty merge commits.
+        /// </summary>
+        /// <value><c>true</c> to preserve empty merge commits; otherwise, <c>false</c>.</value>
+        public bool PreserveMergeCommits { get; set; }
+
+        /// <summary>
         /// Gets or sets the output writer.
         /// </summary>
         /// <value>The output writer.</value>
@@ -351,14 +357,14 @@ namespace GitRocketFilter
 
                 newParents.Add(remapParent);
 
-                // If parent tree is equal, we can prune this commit
+                // If parent tree is equal, we might be able to prune this commit
                 if (pruneCommitParentCandidate == null && remapParent.Tree.Id == newTree.Id)
                 {
                     pruneCommitParentCandidate = remapParent;
                 }
             }
 
-            if (pruneCommitParentCandidate != null)
+            if (pruneCommitParentCandidate != null && !(PreserveMergeCommits && newParents.Count == 2))
             {
                newCommit = pruneCommitParentCandidate;
                commitsDiscarded.Add(commit.Sha);

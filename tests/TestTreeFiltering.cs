@@ -221,5 +221,29 @@ namespace GitRocketFilter.Tests
                 }
             }
         }
+
+        [Fact]
+        public void PreserveEmptyMergeCommit()
+        {
+            var test = InitializeTest();
+
+            Program.Main("--remove", "Test1",
+                "--repo-dir", test.Path,
+                "--branch", NewBranch,
+                "--preserve-merge-commits");
+
+            var repo = test.Repo;
+            var headNewMaster = AssertBranchRef(repo);
+
+            var newCommits = GetCommits(repo, headNewMaster);
+
+            // The merge commit should have survived
+            var mergeCommit = newCommits.SingleOrDefault(c => c.Message.StartsWith("Merge branch 'modify_test1'"));
+            Assert.NotNull(mergeCommit);
+            Assert.Equal(2, mergeCommit.Parents.Count());
+
+            // Cleanup the test only if we succeed
+            test.Dispose();
+        }
     }
 }

@@ -61,6 +61,7 @@ namespace GitRocketFilter
                 {"v|verbose", "Show more verbose progress logs", (bool v) => rocket.Verbose = v},
                 {"d|repo-dir=", "By default git-rocket-filter is running in the current directory expected to be a git repository. You can change this repository by passing a new repository path with this option", v => repositoryPath = v },
                 {"disable-threads", "By default git-rocket-filter is running on multiple threads. This option allow to disable this feature.", (bool v) => rocket.DisableTasks = v },
+                {"preserve-merge-commits", "By default git-rocket-filter removes merge commits that don't contain any changes compared to one of the parents. This option ensures that such 'empty' merge commits are preserved.", (bool v) => rocket.PreserveMergeCommits = v },
                 _,
                 "## Options for commit filtering",
                 _,
