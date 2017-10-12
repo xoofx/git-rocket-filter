@@ -260,6 +260,10 @@ Use with commit filtering. By default, the commit filtering keeps the original p
 
 This can be useful if you want to extract a tree 
 ___
+#### `[--preserve-merge-commits]` 
+
+By default, git-rocket-filter removes merge commits that don't contain any changes compared to one of the parents. This option ensures that such 'empty' merge commits are preserved.
+___
 #### `[--include-links]`
 
 By default, in a tree-filtering (`--keep`, `--remove`...), git-rocket-filter doesn't include links to git submodule. You can include links that specifying this option. Note that while accessing the entry in the script you must check whether the entry is a blob with `entry.IsBlob` or a link `entry.IsLink` as some properties are not valid depending on the type (like `entry.Size` only valid for blob).

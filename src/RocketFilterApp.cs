@@ -129,6 +129,12 @@ namespace GitRocketFilter
         public bool DisableTasks { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to preserve empty merge commits.
+        /// </summary>
+        /// <value><c>true</c> to preserve empty merge commits; otherwise, <c>false</c>.</value>
+        public bool PreserveMergeCommits { get; set; }
+
+        /// <summary>
         /// Gets or sets the output writer.
         /// </summary>
         /// <value>The output writer.</value>
@@ -334,7 +340,7 @@ namespace GitRocketFilter
             // Process parents
             var newParents = new List<Commit>();
             bool hasOriginalParents = false;
-            bool treePruned = false;
+            Commit pruneCommitParentCandidate = null;
             foreach (var parent in commit.Parents)
             {
                 // Find a non discarded parent
@@ -351,13 +357,17 @@ namespace GitRocketFilter
 
                 newParents.Add(remapParent);
 
-                // If parent tree is equal, we can prune this commit
-                if (!treePruned && remapParent.Tree.Id == newTree.Id)
+                // If parent tree is equal, we might be able to prune this commit
+                if (pruneCommitParentCandidate == null && remapParent.Tree.Id == newTree.Id)
                 {
-                    newCommit = remapParent;
-                    commitsDiscarded.Add(commit.Sha);
-                    treePruned = true;
+                    pruneCommitParentCandidate = remapParent;
                 }
+            }
+
+            if (pruneCommitParentCandidate != null && !(PreserveMergeCommits && newParents.Count == 2))
+            {
+               newCommit = pruneCommitParentCandidate;
+               commitsDiscarded.Add(commit.Sha);
             }
 
             // If we detach first commits from their parents
