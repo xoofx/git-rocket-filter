@@ -229,7 +229,7 @@ ___
 
 Removes the specified file/directory based on a `<pattern and command>` `<pattern> [<command>]`. Similar to the way `--keep` is working but by deleting files instead.
 
-The same remarks for `--keep` applies to this option.
+The same remarks for `--keep` apply to this option.
 
 Note when using script that the `entry.Discard` is by default set to **true** for each entry visited. You can reverse the behavior by setting **false** on a particular entry.
 ___
