@@ -120,7 +120,7 @@ commit.Discard         |rw    | A boolean that indicates if we want to keep the 
 
 To **discard a commit**, a command can simply set `if (<condition>) { commit.Discard = true; }` or simply `commit.Discard = <condition>;` to set it based on the result of conditions...etc.
 
-This option is mostly used for **commit-filtering** (that can be used together with tree-filtering options like `--keep`, `--remove`...) but as you have access to to the commit.Tree, you can perform also special tree-filtering accessing directly the tree. For simpler cases where you are just looking for keeping/removing files, the simpler options `--keep`/`--remote` are much more suitable and efficient. 
+This option is mostly used for **commit-filtering** (that can be used together with tree-filtering options like `--keep`, `--remove`...) but as you have access to to the commit.Tree, you can perform also special tree-filtering accessing directly the tree. For simpler cases where you are just looking for keeping/removing files, the simpler options `--keep`/`--remove` are much more suitable and efficient. 
 ___
 #### `--commit-filter-script <script_file>`
 
