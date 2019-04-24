@@ -1,4 +1,4 @@
-# git-rocket-filter
+# git-rocket-filter [![NuGet](https://img.shields.io/nuget/v/git-rocket-filter.svg)](https://www.nuget.org/packages/git-rocket-filter/)
 
 <img align="right" width="160px" height="160px" src="img/rocket.png">
 
@@ -36,14 +36,11 @@ Tested on Windows and Linux (with Mono installed).
 
 ## Download
 
-You can get the latest stable binaries from the [Release](https://github.com/xoofx/GitRocketFilter/releases) page.
+You can install `git-rocket-filter` as a .NET global tool with the following command:
 
-#### Requirements
-
-On Windows, you need .NET 4.0+ Framework installed
-On other platforms, you need [Mono](http://www.mono-project.com/) to be installed:
-- On Linux: `sudo apt-get install mono-complete`
-- On MacOSX: Download [Mono for Mac OS X](http://www.mono-project.com/download/#download-mac) 
+``` 
+dotnet tool install -g git-rocket-filter
+```
 
 ## Examples
 
