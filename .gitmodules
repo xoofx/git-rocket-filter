@@ -1,0 +1,4 @@
+[submodule "ext/libgit2sharp"]
+	path = ext/libgit2sharp
+	url = https://github.com/xoofx/libgit2sharp.git
+	branch = git-rocket-filter
