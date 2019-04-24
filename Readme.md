@@ -1,5 +1,7 @@
 # git-rocket-filter
 
+<img align="right" width="160px" height="160px" src="img/rocket.png">
+
 Powerful and fast command line tool to rewrite git branches powered by .NET, [LibGit2Sharp](https://github.com/libgit2/libgit2sharp) and [Roslyn](https://github.com/dotnet/roslyn).
 
 ## Synopsis

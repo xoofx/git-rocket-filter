@@ -267,7 +267,7 @@ namespace GitRocketFilter
                 var revSpec = RevSpec.Parse(repo, RevisionRange);
                 if (revSpec.Type == RevSpecType.Single)
                 {
-                    commitFilter.Since = revSpec.From.Id;
+                    commitFilter.IncludeReachableFrom = revSpec.From.Id;
                 }
                 else if (revSpec.Type == RevSpecType.Range)
                 {
@@ -871,14 +871,15 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             var syntaxTree = CSharpSyntaxTree.ParseText(code);
 
             string assemblyName = Path.GetRandomFileName();
-            var references = new List<MetadataReference>()
+            var references = new List<MetadataReference>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                MetadataReference.CreateFromFile(typeof (object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof (Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof (File).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof (Repository).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof (RocketFilterApp).Assembly.Location),
-            };
+                if (!assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                {
+                    Console.WriteLine("Used assembly: " + assembly.Location);
+                    references.Add(MetadataReference.CreateFromFile(assembly.Location));
+                }
+            }
 
             var compilation = CSharpCompilation.Create(
                 assemblyName,

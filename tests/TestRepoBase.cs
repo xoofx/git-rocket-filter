@@ -32,7 +32,7 @@ namespace GitRocketFilter.Tests
                 RemoveDirectory(repoPath);
             }
             Directory.CreateDirectory(repoPath);
-            var repoSourcePath = Path.Combine(path, @"..\..\test_repo\");
+            var repoSourcePath = Path.Combine(path, @"..\..\..\test_repo\");
             DirectoryCopy(repoSourcePath, repoPath, true);
             Directory.Move(Path.Combine(repoName, "dotgit"), Path.Combine(repoName, ".git"));
 
@@ -52,7 +52,7 @@ namespace GitRocketFilter.Tests
             var filter = new CommitFilter() {SortBy = CommitSortStrategies.Topological};
             if (since != null)
             {
-                filter.Since = since;
+                filter.IncludeReachableFrom = since;
             }
             return
                 repo.Commits.QueryBy(filter)

@@ -1,16 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.329
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitRocketFilter", "src\GitRocketFilter.csproj", "{16AD42F7-1C6D-4E3B-BA7A-3C81EFC2CC2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GitRocketFilter", "src\GitRocketFilter.csproj", "{16AD42F7-1C6D-4E3B-BA7A-3C81EFC2CC2A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitRocketFilter.Tests", "tests\GitRocketFilter.Tests.csproj", "{C054F10F-98DD-4C34-900B-F180C668EECE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GitRocketFilter.Tests", "tests\GitRocketFilter.Tests.csproj", "{C054F10F-98DD-4C34-900B-F180C668EECE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{C0CEA0BE-7453-4363-A040-81B87E40EECE}"
 	ProjectSection(SolutionItems) = preProject
 		build.bat = build.bat
+		changelog.md = changelog.md
+		readme.md = readme.md
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibGit2Sharp", "ext\libgit2sharp\LibGit2Sharp\LibGit2Sharp.csproj", "{02DD6031-D0BC-4008-890F-0F1B5A90269B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,8 +30,15 @@ Global
 		{C054F10F-98DD-4C34-900B-F180C668EECE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C054F10F-98DD-4C34-900B-F180C668EECE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C054F10F-98DD-4C34-900B-F180C668EECE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02DD6031-D0BC-4008-890F-0F1B5A90269B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02DD6031-D0BC-4008-890F-0F1B5A90269B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02DD6031-D0BC-4008-890F-0F1B5A90269B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02DD6031-D0BC-4008-890F-0F1B5A90269B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1F0788BB-03CC-44F4-BD3B-942A94BA9520}
 	EndGlobalSection
 EndGlobal
