@@ -9,7 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GitRocketFilter.Tests", "te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{C0CEA0BE-7453-4363-A040-81B87E40EECE}"
 	ProjectSection(SolutionItems) = preProject
-		build.bat = build.bat
 		changelog.md = changelog.md
 		readme.md = readme.md
 	EndProjectSection

@@ -876,7 +876,10 @@ namespace {0}", typeof(RocketFilterApp).Namespace).Append(@"
             {
                 if (!assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
                 {
-                    Console.WriteLine("Used assembly: " + assembly.Location);
+                    if (Verbose)
+                    {
+                        OutputWriter.WriteLine("Used assembly for scripting: " + assembly.Location);
+                    }
                     references.Add(MetadataReference.CreateFromFile(assembly.Location));
                 }
             }
