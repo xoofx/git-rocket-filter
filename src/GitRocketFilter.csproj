@@ -9,7 +9,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>git-rocket-filter</ToolCommandName>
     <PackageId>git-rocket-filter</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <PackageTags>git;git-filter-branch</PackageTags>
     <PackageReleaseNotes>https://github.com/xoofx/GitRocketFilter/blob/master/changelog.md</PackageReleaseNotes>
     <PackageIconUrl>https://raw.githubusercontent.com/xoofx/GitRocketFilter/master/img/rocket.png</PackageIconUrl>
