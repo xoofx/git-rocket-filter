@@ -42,6 +42,18 @@ You can install `git-rocket-filter` as a .NET global tool with the following com
 dotnet tool install -g git-rocket-filter
 ```
 
+Alternatively, you can also install the "dockerized" version:
+
+```
+curl https://raw.githubusercontent.com/jcfr/dockgit-rocket-filter/master/git-rocket-filter.sh \
+  -o ~/bin/git-rocket-filter && \
+chmod +x ~/bin/git-rocket-filter
+```
+
+Notes:
+* the containerized version may not be the latest one.
+* this approach is suitable on platform with `docker` and a `unix shell` installed (Linux, macOS, Windows Subsystem for Linux)
+
 ## Examples
 
 **Change commit messages:**
