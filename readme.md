@@ -21,7 +21,7 @@ Powerful and fast command line tool to rewrite git branches powered by .NET, [Li
 The purpose of `git-rocket-filter` is similar to the command [`git-filter-branch`](http://git-scm.com/docs/git-filter-branch) while providing the following unique features:
 
 - Fast rewriting of commits and trees (by an order of `x10` to `x100`).
-- Built-in support for both **white-listing** with `--keep` (keeps files or directories) and **black-listing** with `--remove` options.
+- Built-in support for both **keep-listing** with `--keep` (keeps files or directories) and **remove-listing** with `--remove` options.
 - Use of `.gitignore` like pattern for tree-filtering 
 - Fast and easy C# Scripting for both commit filtering and tree filtering
 - Support for scripting in tree-filtering per file/directory pattern
@@ -305,7 +305,7 @@ Extracting the folder `Documentation` from the repository [git](https://github.c
 
 There are still some areas where `git-rocket-filter` may be inefficient or could be further optimized. For example, `git-rocket-filter` visit the full tree of each commit in order to save the list of entries to keep (entries that can be later selectively removed by a --delete pattern). This visit could be optimized when we know that there won't be any selective patterns, and instead of going deep into the tree, just keep top level trees...
 
-But at least, performance of `git-rocket-filter` should be on average much better than `git-filter-branch`, moreover when a whitelist pattern (--keep) is required.
+But at least, performance of `git-rocket-filter` should be on average much better than `git-filter-branch`, moreover when a keeplist pattern (--keep) is required.
 
 ## License
 This software is released under the [BSD-Clause 2 license](http://opensource.org/licenses/BSD-2-Clause). 
